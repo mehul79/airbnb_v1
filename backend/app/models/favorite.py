@@ -15,3 +15,5 @@ class Favorite(Base):
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     listing_id: Mapped[str] = mapped_column(ForeignKey("listings.id", ondelete="CASCADE"), primary_key=True)
     created_at: Mapped[int] = mapped_column(default=now)
+
+"TODO: fixing count issue here"
