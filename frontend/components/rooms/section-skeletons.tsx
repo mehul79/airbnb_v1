@@ -17,7 +17,7 @@ export function CalendarSkeleton() {
 export function ReviewsSkeleton({ count = 4, favourite = false }: { count?: number; favourite?: boolean }) {
   const shown = Math.max(1, Math.min(count, 6))
   const rows = Math.ceil(shown / 2)
-  const minHeight = 96 + (favourite ? 210 : 28) + 40 + rows * 132 + (rows - 1) * 40 + (count > 6 ? 88 : 0)
+  const minHeight = 96 + (favourite ? 210 : 28) + 40 + (count > 0 ? 130 + 40 : 0) + rows * 132 + (rows - 1) * 40 + (count > 6 ? 88 : 0)
   return (
     <div className="flex flex-col gap-8 py-12" style={{ minHeight }} aria-busy aria-label="Loading reviews">
       <Skeleton className="mx-auto h-8 w-48" />

@@ -4,7 +4,7 @@ import { AmenitiesBlock } from "@/components/rooms/amenities-block"
 import { ExpandableText } from "@/components/rooms/expandable-text"
 import { UserAvatar } from "@/components/rooms/user-avatar"
 import type { ListingDetail } from "@/lib/listings-api"
-import { formatRating, isGuestFavourite, plural, TYPE_LABEL } from "@/lib/labels"
+import { formatRating, plural, TYPE_LABEL } from "@/lib/labels"
 
 const divider = "border-t border-hairline"
 
@@ -42,7 +42,7 @@ export function RoomOverview({ listing }: { listing: ListingDetail }) {
         </p>
       </section>
 
-      {isGuestFavourite(listing) && listing.rating !== null && (
+      {listing.guest_favourite && listing.rating !== null && (
         <section className="mb-6 flex items-center rounded-xl border border-hairline px-6 py-5">
           <div className="flex-1">
             <p className="text-base font-semibold text-ink">Guest favourite</p>
@@ -67,7 +67,16 @@ export function RoomOverview({ listing }: { listing: ListingDetail }) {
         <UserAvatar id={listing.host.id} name={listing.host.display_name} url={listing.host.avatar_url} className="size-10" />
         <div>
           <p className="text-base font-semibold text-ink">Hosted by {listing.host.display_name}</p>
-          <p className="text-sm text-muted-foreground">On Airbnb since {memberYear}</p>
+          <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            {listing.host.superhost && (
+              <>
+                <IconAward className="size-4 text-ink" stroke={1.5} aria-hidden />
+                <span className="font-medium text-ink">Superhost</span>
+                <span aria-hidden>&middot;</span>
+              </>
+            )}
+            On Airbnb since {memberYear}
+          </p>
         </div>
       </section>
 

@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button"
 import type { Host } from "@/lib/listings-api"
 import { formatRating } from "@/lib/labels"
 
-// "Meet your host". Stats shown are this listing's own (the API has no host-level totals).
-export default function HostSection({ host, rating, reviewCount }: { host: Host; rating: number | null; reviewCount: number }) {
+// "Meet your host". The reviews and rating are the host's, over all of their homes, and the
+// Superhost label comes from the API.
+export default function HostSection({ host }: { host: Host }) {
   const memberYear = new Date(host.member_since * 1000).getFullYear()
 
   return (
@@ -20,19 +21,19 @@ export default function HostSection({ host, rating, reviewCount }: { host: Host;
           <div className="flex flex-col items-center gap-2 text-center">
             <UserAvatar id={host.id} name={host.display_name} url={host.avatar_url} className="size-24 text-3xl" />
             <p className="text-[26px] leading-8 font-bold text-ink">{host.display_name}</p>
-            <p className="text-sm text-ink">Host</p>
+            <p className="text-sm font-medium text-ink">{host.superhost ? "Superhost" : "Host"}</p>
           </div>
           <dl className="flex flex-col gap-3">
             <div>
               <dt className="sr-only">Reviews</dt>
-              <dd className="text-[22px] leading-6 font-bold text-ink">{reviewCount}</dd>
-              <dd className="text-xs text-ink">{reviewCount === 1 ? "Review" : "Reviews"}</dd>
+              <dd className="text-[22px] leading-6 font-bold text-ink">{host.review_count}</dd>
+              <dd className="text-xs text-ink">{host.review_count === 1 ? "Review" : "Reviews"}</dd>
             </div>
-            {rating !== null && (
+            {host.rating !== null && (
               <div className="border-t border-hairline pt-3">
                 <dt className="sr-only">Rating</dt>
                 <dd className="flex items-center gap-1 text-[22px] leading-6 font-bold text-ink">
-                  {formatRating(rating)}
+                  {formatRating(host.rating)}
                   <IconStarFilled className="size-3.5" />
                 </dd>
                 <dd className="text-xs text-ink">Rating</dd>
