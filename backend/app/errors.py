@@ -53,9 +53,8 @@ async def http_error_handler(request: Request, exc: StarletteHTTPException):
 
 
 async def db_error_handler(request: Request, exc: OperationalError):
-    # "database is locked" (another writer held the lock past the busy timeout) and "turso unavailable"
-    # (network trouble, from app/turso.py) are retryable conditions, not bugs.
+    # "database is locked": another writer held the lock past the busy timeout. Retryable, not a bug.
     message = str(exc.orig).lower()
-    if "locked" in message or "busy" in message or "unavailable" in message:
+    if "locked" in message or "busy" in message:
         return error_response(request, 503, "DATABASE_BUSY", "We are busy right now. Please try again in a moment.")
     raise exc

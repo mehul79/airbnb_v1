@@ -1,6 +1,6 @@
 # Backend
 
-FastAPI + SQLAlchemy 2 + Alembic. Local development uses a SQLite file; production will use Turso.
+FastAPI + SQLAlchemy 2 + Alembic. Local development uses a SQLite file; in production the file sits on a persistent disk.
 
 ## Setup
 
@@ -13,8 +13,6 @@ uv run python -m app.seed       # demo data; safe to re-run, never overwrites ed
 uv run uvicorn app.main:app --reload --port 8000
 uv run pytest                   # each test builds a temporary SQLite file via the real migrations
 ```
-
-One-off, to use a copy of the schema online, see Turso below.
 
 Docs at http://localhost:8000/docs. Everything is under `/api/v1`.
 
@@ -69,22 +67,21 @@ How a booking is decided. The checks read first so errors are specific, then one
 
 Reuse one `Idempotency-Key` when retrying the same checkout (a lost response, a double click). Use a new key when the dates, guests, or accepted quote change. If the database stays busy past the 5 second timeout the answer is 503 `DATABASE_BUSY`, which is safe to retry with the same key. The client never chooses who the guest is, the price, or the status.
 
-## Turso (production database)
+## Production
 
-The deployed app uses Turso. Locally everything uses a SQLite file, so you only need this section to prepare the hosted database or to run the remote tests.
+The server uses the same SQLite engine, with the file on a persistent disk (Render: a paid instance with a disk mounted at `/var/data`). A free instance has an ephemeral disk and would lose the data on every restart.
 
-```bash
-# .env needs TURSO_DATABASE_URL_TESTING / TURSO_TESTING_SECRET and the PRODUCTION pair (see .env.example)
-uv run python scripts/on_turso.py testing alembic upgrade head      # create the tables
-uv run python scripts/on_turso.py testing python -m app.seed        # demo data (about 3 minutes)
-TURSO_TESTS=1 uv run pytest tests/test_turso.py                     # 7 tests against the testing database
-uv run python scripts/on_turso.py production alembic upgrade head   # once, when deploying
-uv run python scripts/on_turso.py production python -m app.seed
+```
+DATABASE_URL=sqlite:////var/data/app.db     # absolute path: four slashes (three would be a relative path and be wiped on redeploy)
+FRONTEND_ORIGIN=<the Vercel URL>
+COOKIE_SECURE=true
+Build:  uv sync --frozen
+Start:  uv run alembic upgrade head && uv run python -m app.seed && uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-`scripts/on_turso.py` names the target on every call, prints the database host (never the token), and runs your command with `DATABASE_URL` and `TURSO_AUTH_TOKEN` set for that command only. On the server, set those two variables to the production values.
-
-`app/turso.py` is a small pure-Python driver for Turso's HTTPS API. Turso's own Python packages are native code with no Windows or Python 3.14 wheels, so they cannot be installed here. SQLAlchemy uses the driver through its normal SQLite dialect. Every statement is one network round trip, so the code keeps the number of statements per request low (this is why booking is a single INSERT ... SELECT).
+- Migrations and the seed run in the start command, not the build, because the disk is not mounted during build. Both are safe to repeat on every boot.
+- Run one instance (SQLite has one writer). Atomic booking statements, not instance count, prevent double bookings.
+- Back up with `sqlite3 /var/data/app.db ".backup /var/data/backup.db"`, not a raw file copy (the database runs in WAL mode).
 
 ## Demo accounts
 

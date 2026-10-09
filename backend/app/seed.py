@@ -49,7 +49,7 @@ def seed(db: Session) -> None:
             db.add(amenity)
         amenities[slug] = amenity
     # Reviews and listings point at these by foreign key without an ORM relationship, so save parents first.
-    # Committing in small steps keeps each transaction short, which matters on Turso. A re-run resumes.
+    # Committing in small steps keeps each transaction short. A re-run resumes.
     db.commit()
 
     review_no = 0

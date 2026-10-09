@@ -18,15 +18,15 @@ The assignment governs required functionality; DESIGN.md governs presentation. P
 - No root Git repository exists. frontend/ and backend/ each contain a separate .git directory. Preserve their histories and existing changes.
 - Frontend: Next.js 16.4.0, React 19.3.0, TypeScript, Tailwind 4. UI foundation only: shadcn radix-nova with 27 primitives in components/ui, Tabler icons, Inter, Airbnb tokens in app/globals.css, a Zustand store, Sonner. app/page.tsx is a placeholder. public/ is empty; no feature components, no lib/api, no relay route yet.
 - Backend: Python >=3.14, uv.lock, FastAPI only; main.py prints a greeting. README.md is empty.
-- Nothing else exists: no app, schema, tables, database, migrations, seed, tests, .env.example, or Turso/Cloudinary connection. No listing images exist anywhere yet (no seed script, no Unsplash URLs chosen).
+- Nothing else exists: no app, schema, tables, database, migrations, seed, tests, .env.example, or Cloudinary connection. No listing images exist anywhere yet (no seed script, no Unsplash URLs chosen).
 - frontend/README.md is template documentation.
 - Existing frontend and backend changes are user work. Do not reset, overwrite, or discard them.
 
 ## Implementation rules
 
 - Keep Next.js + TypeScript in frontend/, Python + FastAPI in backend/, and SQLite as required.
-- Deployment choices: Vercel frontend, Turso hosted libSQL (SQLite fork) database, Unsplash CDN for seed/default listing photos, Cloudinary for host-uploaded photos only. Confirm the FastAPI host at deployment; options are saved in .claude/system_architecture.md, section 11.
-- Use local SQLite for development and a verified remote libSQL driver in production. Test migrations and atomic booking conflicts against Turso before delivery; no production database or images on ephemeral backend disk.
+- Deployment choices: Vercel frontend, FastAPI on Render with a persistent disk holding the SQLite file, Unsplash CDN for seed/default listing photos, Cloudinary for host uploads only.
+- Use a SQLite file locally and on the server's persistent disk in production, never the ephemeral disk. Migrations and the idempotent seed run in the start command.
 - Read applicable installed Next.js guides in frontend/node_modules/next/dist/docs/ before changing framework code. Installed APIs may differ from familiar versions.
 - Use FastAPI as the sole business-data authority. Do not build a second booking backend in Next.js or use localStorage as primary persistence.
 - Prefer a small modular monolith: API routers, validation schemas, services for business rules, and SQLite persistence. No microservices, queues, or real payment integration.
@@ -84,12 +84,8 @@ The assignment estimates approximately 24 hours, not a guaranteed schedule. The 
 - [x] Migration 0004: bookings, with CHECK constraints for dates, totals and statuses and a unique (guest, idempotency key).
 - [ ] Migrate favorites with its slice.
 - [ ] Add constraints, indexes, foreign keys, and short transactional writes for booking confirmation, host mutations, and favorites.
-- [x] Turso driver, migrations, seed and booking guarantees verified against the TESTING database on 2026-10-10. Production has not been written to.
-  - No native driver installs on Windows with Python 3.14, so `app/turso.py` is a pure-Python driver over Turso's HTTPS API. SQLAlchemy uses it unchanged. 8 local tests cover its transaction rules with a fake server.
-  - Migrations 0001-0004 and the seed ran with `uv run python scripts/on_turso.py testing ...` (21 s and 2.6 min). Remote row counts equal the seed data, and a second seed run changed nothing.
-  - `tests/test_turso.py` (opt-in with `TURSO_TESTS=1`, 7 tests, 78 s): foreign keys and CHECK constraints, types, search, retries, key conflicts, the price guard, two-client races, a host edit mid-booking, and the HTTP API end to end. Deleting the overlap guard made the remote race test fail with two overlapping bookings saved.
-  - Probe numbers from the dev laptop: 2.4 s for the first request, 0.4 to 0.6 s after. This is why booking is one atomic INSERT ... SELECT and not a lock held across steps.
-- [ ] Run migrations and the seed on the PRODUCTION Turso database, once and deliberately: `uv run python scripts/on_turso.py production alembic upgrade head`, then `... production python -m app.seed`.
+- [x] Turso was evaluated (pure-Python driver, verified on a testing database) and dropped on 2026-10-11 in favour of SQLite on a persistent disk. Booking guarantees are unchanged: one atomic INSERT ... SELECT.
+- [ ] Create the Render service with a disk at /var/data; set DATABASE_URL=sqlite:////var/data/app.db, FRONTEND_ORIGIN, COOKIE_SECURE=true; start command runs migrate, seed, uvicorn.
 - [x] Hand-pick Unsplash CDN photo URLs for seed listings (78 unique URLs, each checked to return 200 and looked at; no upload, no API key). Photographer names were not captured, so a credits page is not possible without the Unsplash API. The local image fallback is a frontend task.
 - [x] Seed 24 listings in 4 regions, 5 users (3 own listings, 2 do not), 12 amenities, 78 photos, and 47 reviews on 20 listings (4 stay unreviewed so they show "New").
 - [x] Seed 22 past and upcoming bookings across 11 listings, including two back-to-back stays on one listing.
@@ -116,12 +112,11 @@ The assignment estimates approximately 24 hours, not a guaranteed schedule. The 
 ### Phase 4 - Booking and trips (4 hours)
 
 - [ ] Add checkout summary and explicit simulated confirmation action.
-- [x] Implement atomic overlap checks and booking persistence: one INSERT ... SELECT ... WHERE NOT EXISTS (overlap), on local SQLite and on Turso.
+- [x] Implement atomic overlap checks and booking persistence: one INSERT ... SELECT ... WHERE NOT EXISTS (overlap), on SQLite.
 - [x] Add booking idempotency and stale-price/conflict handling (PRICE_CHANGED returns the fresh quote); retry, changed-intent and late-retry behavior tested.
 - [ ] Implement confirmation and My Trips, including past/upcoming presentation.
 - [ ] Refresh availability, search, trips, and host reservations after mutations.
 - [x] Test concurrent competing clients (two threads, two connections, six rounds), adjacent dates, twin requests with one key, a host edit or archive between the checks and the insert, and a busy database (503), locally. Deleting the overlap guard makes these fail.
-- [x] Repeat the contention tests on the Turso testing database (7 remote tests). Rows were seen by separate processes (seed, tests, probes), so they persist outside any one backend run.
 - Gate: two competing clients cannot book overlapping nights; successful booking appears in trips and blocks dates.
 
 ### Phase 5 - Host CRUD and reservations (3 hours)
@@ -147,7 +142,7 @@ The assignment estimates approximately 24 hours, not a guaranteed schedule. The 
 - [ ] Check a fresh setup from documented commands and a clean database.
 - [ ] Replace template README with setup, stack, architecture, schema, API overview, assumptions, demo identities, and testing.
 - [ ] Package one public-ready repository containing frontend/, backend/, and planning docs; omit secrets, databases, generated output, and environments.
-- [ ] Deploy frontend on Vercel; confirm the FastAPI host using the saved options, connect Turso (and Cloudinary once host upload exists), then run migrations and seed safely.
+- [ ] Deploy frontend on Vercel; confirm the FastAPI host using the saved options, attach the persistent disk (and Cloudinary once host upload exists), then run migrations and seed safely.
 - [ ] Smoke-test hosted booking, host CRUD, persistence across backend restart, and direct links.
 - [ ] Record public repository and hosted application URLs for submission; actual deadline must come from the assignment sender.
 - Gate: a reviewer can use both links, reproduce setup, and complete every P0 journey.
@@ -158,13 +153,13 @@ The assignment estimates approximately 24 hours, not a guaranteed schedule. The 
 - Frontend: browse -> filter -> detail -> checkout -> confirmation -> trips; host create -> edit -> archive; signout/signin as another account -> authorization boundary; save -> refresh -> unsave.
 - Design: compare with DESIGN.md at 390px, 820px, 1280px, and 1536px; check overflow, dialog scrolling, readable prices, photo proportions, and mobile reservation visibility.
 - Planned commands: frontend npm run lint, npx tsc --noEmit, npm run build; backend uv run pytest. Add test setup before treating these as established passing checks.
-- Local database tests must use temporary SQLite files, including separate connections for contention; run remote integration checks against a separate Turso test database, never demo data.
+- Local database tests must use temporary SQLite files, including separate connections for contention; never test against demo data.
 - Do not mark implementation complete based on mocked frontend responses or unchecked screenshots.
 
 ## Delivery and maintenance discipline
 
 Update this checklist and related requirement IDs as work passes its gates. Record actual commands and results. Keep PRD about behavior, architecture about technical decisions, and this file about execution. Optional review creation, live maps, host file-upload UI, dark mode, and additional integrations remain deferred until P0 is complete.
 
-Current status (2026-10-10, backend): auth, listings API, bookings API (one atomic INSERT ... SELECT decides each booking), the seed, and a pure-Python Turso driver. Alembic is at 0004. 91 local tests pass, plus 7 opt-in tests that pass against the Turso testing database, which is migrated and seeded. Production Turso has not been written to. Favorites and host CRUD are not built; the confirmation and My Trips screens are not built.
+Current status (2026-10-11, backend): auth, listings, bookings (one atomic INSERT ... SELECT decides each booking), favorites, host CRUD and the seed, on SQLite only (Turso dropped). Alembic is at 0005. 139 of 140 tests pass; the failing one is a known clash with a seeded Kasol listing.
 
 Current status (2026-10-10): frontend landing page (header, search bar, two listing rows) and the sign-in/sign-up dialog are built and visually verified (browser screenshots at 1440px and 390px) against the user's reference screenshots and a live airbnb.co.in fetch. All data on the page is hardcoded mock data (lib/mock-listings.ts) with hand-picked Unsplash photo URLs; GET /listings wiring, mobile search-sheet collapse, filters, and the account/hamburger dropdown menus remain. lint, tsc --noEmit, and build all pass.
