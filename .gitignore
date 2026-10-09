@@ -45,3 +45,6 @@ backend/tests/
 
 # Archify diagram output stays local
 docs/archify/
+
+# Claude instructions stay local
+/CLAUDE.md
