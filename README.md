@@ -67,12 +67,11 @@ Checkout/confirmation/trips screens, host CRUD, and persisted favorites remain u
 
 - `frontend/`: Next.js, React, Tailwind, shadcn/Radix, Tabler icons, Inter, and Zustand for client UI/session state.
 - `backend/`: FastAPI, SQLAlchemy, Alembic, seed data, pytest tests, and a pure-Python Turso HTTPS driver.
-- `.claude/`: assignment PDF, reference inputs, PRD, and architecture.
 - `AGENTS.md`: execution plan and verification checklist.
 
 FastAPI owns business data. Browser requests use the Next.js `/api/v1` relay; server-side reads call FastAPI directly. SQLite stores users, sessions, listings, photos, amenities, reviews, and bookings. Money is integer paise; stays use checkout-exclusive dates. Authentication uses scrypt passwords and an HttpOnly session cookie.
 
-See [backend setup and API reference](backend/README.md), [frontend setup](frontend/README.md), [architecture](.claude/system_architecture.md), and [design guide](frontend/DESIGN.md).
+See [backend setup and API reference](backend/README.md), [frontend setup](frontend/README.md), and [design guide](frontend/DESIGN.md).
 
 Environment templates are included. Actual environment files, credentials, databases, dependencies, caches, and logs are excluded. A fresh machine creates its database with migrations and the seed. For Turso configuration and opt-in remote tests, follow `backend/README.md` using your own credentials. Cloudinary upload is deferred and needs no configuration locally.
 

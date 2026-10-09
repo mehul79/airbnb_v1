@@ -35,3 +35,6 @@ Thumbs.db
 
 # Separate delivery checkout
 .submission/
+
+# Local planning notes, not published
+.claude/
