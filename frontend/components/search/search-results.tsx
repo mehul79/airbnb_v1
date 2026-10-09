@@ -2,10 +2,9 @@ import Link from "next/link"
 import { IconHomeSearch } from "@tabler/icons-react"
 
 import { FilterBar } from "@/components/search/filter-bar"
-import { MapButton } from "@/components/search/map-button"
 import { ResultsError } from "@/components/search/results-error"
 import { ResultsPagination } from "@/components/search/results-pagination"
-import { SearchResultCard } from "@/components/search/search-result-card"
+import { ResultsLayout } from "@/components/search/results-layout"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { fetchAmenities, fetchListings, ListingsApiError } from "@/lib/listings-api"
@@ -36,6 +35,10 @@ export async function SearchResults({ searchParams }: { searchParams: SearchPara
   const location = params.get("location")
   const heading = `${total.toLocaleString("en-IN")} ${total === 1 ? "home" : "homes"}${location ? ` in ${location}` : ""}`
   const filtered = ["category", "property_type", "min_price_minor", "max_price_minor", "amenity"].some((k) => params.has(k))
+
+  // The map shows every match of this search, not one page, so it ignores the page number.
+  const mapParams = new URLSearchParams(params)
+  mapParams.delete("page")
 
   // Clearing keeps the place, dates and guests; only the filters go.
   const cleared = new URLSearchParams(params)
@@ -69,22 +72,17 @@ export async function SearchResults({ searchParams }: { searchParams: SearchPara
           </Empty>
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-x-6 gap-y-10 min-[500px]:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
-              {items.map((listing) => (
-                <SearchResultCard key={listing.id} listing={listing} />
-              ))}
-            </div>
-            <div className="mt-12 flex flex-col items-center gap-3">
-              <ResultsPagination page={page} totalPages={total_pages} params={params} />
-              <p className="text-sm text-muted-foreground">
-                Showing {(page - 1) * 12 + 1}–{(page - 1) * 12 + items.length} of {total.toLocaleString("en-IN")}
-              </p>
-            </div>
+            <ResultsLayout items={items} params={mapParams.toString()}>
+              <div className="mt-12 flex flex-col items-center gap-3">
+                <ResultsPagination page={page} totalPages={total_pages} params={params} />
+                <p className="text-sm text-muted-foreground">
+                  Showing {(page - 1) * 12 + 1}–{(page - 1) * 12 + items.length} of {total.toLocaleString("en-IN")}
+                </p>
+              </div>
+            </ResultsLayout>
           </>
         )}
       </div>
-
-      <MapButton />
     </>
   )
 }

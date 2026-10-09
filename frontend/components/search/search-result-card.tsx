@@ -15,11 +15,24 @@ import { cn } from "@/lib/utils"
 // Search-result card: square photo, heart, "Villa in Anjuna" + rating, title, price.
 // The title link is stretched over the card (same pattern as the home rows); the heart sits
 // above it as its own button (saving needs a login; see useFavorite).
-export function SearchResultCard({ listing }: { listing: ListingSummary }) {
+export function SearchResultCard({
+  listing,
+  onHover,
+  highlighted = false,
+}: {
+  listing: ListingSummary
+  // Lets the results page light up this home's price bubble on the map (and vice versa).
+  onHover?: (id: string | null) => void
+  highlighted?: boolean
+}) {
   const { saved: favourite, toggle } = useFavorite(listing.id)
 
   return (
-    <article className="relative flex flex-col gap-3">
+    <article
+      className={cn("relative flex flex-col gap-3 rounded-xl transition-shadow", highlighted && "ring-2 ring-ink ring-offset-4 ring-offset-background")}
+      onMouseEnter={() => onHover?.(listing.id)}
+      onMouseLeave={() => onHover?.(null)}
+    >
       <div className="relative aspect-square overflow-hidden rounded-xl bg-(image:--gradient-photo-placeholder)">
         {listing.photo_url && (
           <Image

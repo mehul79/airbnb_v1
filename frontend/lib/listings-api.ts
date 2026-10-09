@@ -8,6 +8,8 @@ export type ListingSummary = {
   city: string
   region: string
   location_label: string
+  latitude: number | null
+  longitude: number | null
   property_type: string
   category: string
   max_guests: number
@@ -28,6 +30,9 @@ export type ListingPage = {
   total: number
   total_pages: number
 }
+
+// GET /listings/map: every match with coordinates (up to a cap), not one page.
+export type MapPage = { items: ListingSummary[]; total: number; truncated: boolean }
 
 export type Amenity = { slug: string; name: string; icon_key: string }
 
