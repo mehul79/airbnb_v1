@@ -370,6 +370,23 @@ REVIEWS = [
     (4, "Comfortable and well equipped. Easy to find and plenty of parking."),
 ]
 
+# Hosts whose guests nearly always leave 5 stars (one 4-star in eight), so the demo has a real
+# Superhost and some Guest favourites. The other hosts have ordinary mixed reviews and do not
+# qualify, which shows the badges are earned and not handed out.
+TOP_RATED_HOSTS = {"meera"}
+FIVE_STAR_REVIEWS = [r for r in REVIEWS if r[0] == 5]
+FOUR_STAR_REVIEW = next(r for r in REVIEWS if r[0] == 4)
+
+
+def review_for(host: str, review_no: int) -> tuple[int, str]:
+    """(rating, text) for the review_no-th review in the seed."""
+    if host in TOP_RATED_HOSTS:
+        if review_no % 8 == 7:
+            return FOUR_STAR_REVIEW
+        return FIVE_STAR_REVIEWS[review_no % len(FIVE_STAR_REVIEWS)]
+    return REVIEWS[review_no % len(REVIEWS)]
+
+
 # (listing slug, guest key, check-in as days from the day of first seeding, nights).
 # Negative offsets are past stays, positive are upcoming. Two guests share a listing only on
 # non-overlapping nights; the manali-pine-log-cabin pair is back to back (check-in on the other's checkout day).

@@ -18,6 +18,7 @@ from app.schemas.listings import (
     SearchParams,
 )
 from app.services import pricing, stays
+from app.services import ratings as reputation
 
 MAX_WINDOW_DAYS = 366
 
@@ -38,7 +39,9 @@ def get_active(db: Session, listing_id: str) -> Listing:
     return listing
 
 
-def summary(listing: Listing, avg: float | None, n: int | None, cover: ListingPhoto | None) -> ListingSummary:
+def summary(
+    listing: Listing, avg: float | None, n: int | None, cover: ListingPhoto | None, host_superhost: bool = False
+) -> ListingSummary:
     """The card shape shared by search results and the wishlist."""
     return ListingSummary(
         id=listing.id,
@@ -56,6 +59,8 @@ def summary(listing: Listing, avg: float | None, n: int | None, cover: ListingPh
         photo_source=cover.source if cover else None,
         rating=_rating(avg),
         review_count=n or 0,
+        guest_favourite=reputation.is_guest_favourite(avg, n or 0),
+        host_superhost=host_superhost,
     )
 
 
@@ -139,7 +144,8 @@ def search(db: Session, p: SearchParams) -> ListingPage:
         )
     }
 
-    items = [summary(listing, avg, n, covers.get(listing.id)) for listing, avg, n in rows]
+    hosts = reputation.host_stats(db, [listing.host_id for listing, _, _ in rows])
+    items = [summary(listing, avg, n, covers.get(listing.id), hosts[listing.host_id].superhost) for listing, avg, n in rows]
     return ListingPage(
         items=items, page=p.page, page_size=p.page_size, total=total, total_pages=_pages(total, p.page_size)
     )
@@ -148,6 +154,7 @@ def search(db: Session, p: SearchParams) -> ListingPage:
 def detail(db: Session, listing_id: str) -> ListingDetail:
     listing = get_active(db, listing_id)
     host = db.get(User, listing.host_id)
+    host_stats = reputation.host_stats(db, [host.id])[host.id]
     avg, n = db.execute(select(func.avg(Review.rating), func.count()).where(Review.listing_id == listing_id)).one()
     return ListingDetail(
         id=listing.id,
@@ -175,9 +182,14 @@ def detail(db: Session, listing_id: str) -> ListingDetail:
             "display_name": host.display_name,
             "avatar_url": host.avatar_url,
             "member_since": host.created_at,
+            "rating": host_stats.rating,
+            "review_count": host_stats.review_count,
+            "superhost": host_stats.superhost,
         },
         rating=_rating(avg),
         review_count=n,
+        guest_favourite=reputation.is_guest_favourite(avg, n),
+        rating_breakdown=reputation.rating_breakdown(db, listing_id),
     )
 
 

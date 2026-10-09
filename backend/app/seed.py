@@ -14,7 +14,7 @@ from app import clock
 from app.db import SessionLocal
 from app.models import Amenity, Booking, Listing, ListingPhoto, Review, User
 from app.models.user import now
-from app.seed_data import AMENITIES, BOOKINGS, DEMO_PASSWORD, LISTINGS, REVIEW_COUNTS, REVIEWS, USERS
+from app.seed_data import AMENITIES, BOOKINGS, DEMO_PASSWORD, LISTINGS, REVIEW_COUNTS, USERS, review_for
 from app.services.auth import hash_password
 from app.services.pricing import compute_price
 from app.vocab import PhotoSource
@@ -98,7 +98,7 @@ def seed(db: Session) -> None:
         # Reviewers are the other four users, so nobody reviews their own listing.
         reviewers = [key for key, *_ in USERS if key != s.host]
         for n in range(REVIEW_COUNTS[i]):
-            rating, body = REVIEWS[review_no % len(REVIEWS)]
+            rating, body = review_for(s.host, review_no)
             db.add(
                 Review(
                     id=stable_id("review", f"{s.slug}:{reviewers[n]}"),
