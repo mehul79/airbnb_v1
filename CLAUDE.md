@@ -17,7 +17,7 @@ Airbnb stays marketplace clone for an SDE fullstack assignment: Next.js (TypeScr
 
 **Treat the code on disk as the truth.** The docs were corrected on 2026-10-09 to say nothing in the backend is built; keep them that way.
 
-- `backend/`: FastAPI app in `app/`, Alembic 0001-0004 (users, sessions, listings, photos, amenities, reviews, bookings, plus `users.age`), auth endpoints (signup/signin/signout/me, `POST /auth/check` for the email-first dialog, signup takes `age` 18+), a listings API (search, detail, reviews, availability, quote, amenities), a bookings API (`POST /bookings`, `GET /bookings/{id}`, `GET /me/bookings`), a seed (24 listings, 5 users, 78 Unsplash photos, 47 reviews, 22 bookings), `.env.example`, 91 passing tests (plus 7 opt-in Turso tests). The Turso testing database is migrated and seeded and passes 7 remote tests through app/turso.py (a pure-Python driver); the production database has not been written to. No favorites or host CRUD yet. The Git repo has no commits yet; everything is untracked.
+- `backend/`: FastAPI app in `app/`, Alembic 0001-0004 (users, sessions, listings, photos, amenities, reviews, bookings, plus `users.age`), auth endpoints (signup/signin/signout/me, `POST /auth/check` for the email-first dialog, signup takes `age` 18+), a listings API (search, detail, reviews, availability, quote, amenities), a bookings API (`POST /bookings`, `GET /bookings/{id}`, `GET /me/bookings`), a seed (24 listings, 5 users, 78 Unsplash photos, 47 reviews, 22 bookings), `.env.example`, 140 tests (one known failure: `test_anyone_can_create_and_it_appears_in_explore` clashes with a seeded Kasol listing). Favorites and host CRUD exist.
 - `frontend/`: Next 16.4.0, React 19.3.0, Tailwind 4. The UI foundation is set up but no feature screens exist yet; `/` is a placeholder. Only the initial commit exists, and the setup is uncommitted. What's in place:
   - shadcn (`radix-nova` style, Radix base, `iconLibrary: tabler`) with 27 primitives in `components/ui/`
   - Inter font
@@ -44,13 +44,10 @@ uv run alembic upgrade head                        # apply migrations
 uv run python -m app.seed                          # demo data, safe to re-run
 uv run alembic revision --autogenerate -m "msg"   # after changing models
 uv run uvicorn app.main:app --reload --port 8000   # frontend/.env.local sets API_BASE_URL (this machine uses 8011)
-uv run pytest                                      # local tests; the 7 Turso tests skip
+uv run pytest                                      # local tests
 
-# Turso (names the target every time, on purpose; uses the TURSO_* values in backend/.env)
-uv run python scripts/on_turso.py testing alembic upgrade head
-uv run python scripts/on_turso.py testing python -m app.seed
-TURSO_TESTS=1 uv run pytest tests/test_turso.py    # needs the testing database migrated and seeded
-# production: same commands with `production`, run once and deliberately
+# production start command (Render; the disk is not mounted at build time)
+uv run alembic upgrade head && uv run python -m app.seed && uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
 When you add migration, seed, or env commands, record them here and in the README.
@@ -74,7 +71,7 @@ When you add migration, seed, or env commands, record them here and in the READM
   - Call `clearSession()` on signout.
   - Add slices to this one store instead of creating new stores.
   - Never put server data caches or secrets in it.
-- Deployment: Vercel (frontend), Turso libSQL (production DB), Unsplash CDN (seed/default listing photos), Cloudinary (host-uploaded photos only). The FastAPI host is decided at deploy time; options are in architecture §11. Production data never lives on the backend's local disk.
+- Deployment: Vercel (frontend), FastAPI on Render with a persistent disk holding the SQLite file (`DATABASE_URL=sqlite:////var/data/app.db`), Unsplash CDN (seed/default listing photos), Cloudinary (host-uploaded photos only). Production data lives only on that persistent disk, never the ephemeral filesystem; run one instance.
 - Images: `listing_photos.source` is `unsplash`, `cloudinary`, or `url`. Seed data is always `unsplash` — hand-picked `images.unsplash.com/photo-{id}` links, no API key, no account, not an upload. Cloudinary is reserved for a photo a real host uploads for their own listing: the host form's "Upload photos" asks `POST /host/uploads/sign` for a signed request (needs a session; the API secret stays in `backend/.env` as `CLOUDINARY_CLOUD_NAME/API_KEY/API_SECRET`) and the browser uploads straight to Cloudinary into `airbnb-clone/listings/<user id>`; the returned link is saved like a pasted one, with `source=cloudinary` and its public id. Pasting any https link still works. Don't seed through Cloudinary and don't call the Unsplash search API; both defeat the point (manual curation cost, and unnecessary account/key/rate-limit surface).
 
 ## Domain invariants (enforce on the server, test them)
@@ -85,7 +82,7 @@ When you add migration, seed, or env commands, record them here and in the READM
 - Rejected: past check-in, zero nights or reversed dates, guests above capacity, archived listings, and booking your own listing. Check-in today is allowed.
 - Pricing: `subtotal = nights × nightly`, `service = (subtotal*10 + 50)//100` (10%, rounded half-up), `total = subtotal + cleaning + service`. The frontend only formats numbers the API returns.
 - A quote is not a hold. Booking recomputes the price and compares the quote fingerprint. A mismatch returns `PRICE_CHANGED` with a fresh quote.
-- Booking is one atomic `INSERT INTO bookings ... SELECT ... WHERE (listing active AND price unchanged AND NOT EXISTS overlapping booking)`, after read-only checks that give specific errors. The database runs it as one statement, so no lock is needed and it works the same on local SQLite and Turso. A required `Idempotency-Key` (unique per guest) makes retries return the same booking. Bookings snapshot the price, title, location, and cover photo. Don't replace this with check-then-insert or with a lock held across round trips; Turso round trips take 0.4 s or more.
+- Booking is one atomic `INSERT INTO bookings ... SELECT ... WHERE (listing active AND price unchanged AND NOT EXISTS overlapping booking)`, after read-only checks that give specific errors. The database runs it as one statement, so no lock is needed. A required `Idempotency-Key` (unique per guest) makes retries return the same booking. Bookings snapshot the price, title, location, and cover photo. Don't replace this with check-then-insert or with a lock held across statements; that blocks every other writer for the whole request.
 - "Delete listing" means archive (`archived_at`). Existing bookings stay readable.
 - Ownership: host queries filter on `host_id = current user`. Never trust client-sent ids, totals, status, or ownership fields.
 - Auth is deliberately simple (user decision, 2026-10-09):
@@ -161,7 +158,7 @@ The assignment says the look and feel should be **exactly** Airbnb's. Follow DES
 - Build P0 as vertical slices in the AGENTS.md phase order. When time is short, cut extras, never required flows.
 - Original work only. Don't copy any existing Airbnb clone repository; plagiarism means disqualification.
 - When you add a dependency, give a one-line reason.
-- Tests use temporary SQLite files, with separate connections for contention tests. Remote checks run against a separate Turso test database, never demo data.
+- Tests use temporary SQLite files, with separate connections for contention tests. Never test against demo data.
 - Never commit secrets, `.env`, database files, `.venv`, `node_modules`, or `.next`.
 - Don't mark a requirement done based on mocked frontend data or unchecked screenshots. Verify it end to end, then update the AGENTS.md checklist.
 - If the user changes a decision, update the PRD, the architecture doc, AGENTS.md, and this file together.

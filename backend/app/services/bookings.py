@@ -81,9 +81,8 @@ def create(db: Session, guest_id: str, data: BookingIn, idempotency_key: str) ->
     Everything before the insert only reads, to give clear errors. The decision itself is the insert:
     one INSERT ... SELECT that writes the booking only if, at that instant, the listing is still active,
     still at the quoted price, and no confirmed booking shares a night. The database runs one statement
-    atomically, so two requests for the same nights cannot both succeed, however they interleave and
-    whichever database (local SQLite or Turso) is underneath. No lock or open transaction is needed,
-    which matters on Turso where every round trip is slow.
+    atomically, so two requests for the same nights cannot both succeed, however they interleave.
+    No lock or long-open transaction is needed, so other writers are never held up.
     """
     fingerprint = _request_fingerprint(data)
 

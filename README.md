@@ -1,6 +1,6 @@
 # Airbnb stays marketplace
 
-Next.js + TypeScript frontend and FastAPI backend, with SQLite for local persistence. This repository includes the current implementation, seed data, migrations, tests, local UI assets, and planning documents.
+Next.js + TypeScript frontend and FastAPI backend, with SQLite (a file locally and on the server's persistent disk). This repository includes the current implementation, seed data, migrations, tests, local UI assets, and planning documents.
 
 ## Requirements
 
@@ -8,7 +8,7 @@ Next.js + TypeScript frontend and FastAPI backend, with SQLite for local persist
 - Python 3.14 or newer and uv.
 - Internet access for dependencies, the Inter font during the Next.js build, and Unsplash listing photos.
 
-No Turso or Cloudinary credentials are needed locally. Both dependency lockfiles are included.
+No Cloudinary credentials are needed locally. Both dependency lockfiles are included.
 
 ## Run locally
 
@@ -47,7 +47,7 @@ Use `localhost` consistently. Mutations must come from `FRONTEND_ORIGIN`, defaul
 
 ## Demo data and accounts
 
-The seed creates 24 listings across four regions, 78 photos, 47 reviews, and 22 past/upcoming bookings dated relative to the first seed run. All demo accounts use `demo-password`:
+The seed creates 40 listings across four regions, 78 photos, 47 reviews, and 22 past/upcoming bookings dated relative to the first seed run. All demo accounts use `demo-password`:
 
 - `meera.kapoor@example.com`
 - `arjun.nair@example.com`
@@ -66,14 +66,14 @@ Checkout/confirmation/trips screens, host CRUD, and persisted favorites remain u
 ## Structure and configuration
 
 - `frontend/`: Next.js, React, Tailwind, shadcn/Radix, Tabler icons, Inter, and Zustand for client UI/session state.
-- `backend/`: FastAPI, SQLAlchemy, Alembic, seed data, pytest tests, and a pure-Python Turso HTTPS driver.
+- `backend/`: FastAPI, SQLAlchemy, Alembic, seed data, pytest tests.
 - `AGENTS.md`: execution plan and verification checklist.
 
 FastAPI owns business data. Browser requests use the Next.js `/api/v1` relay; server-side reads call FastAPI directly. SQLite stores users, sessions, listings, photos, amenities, reviews, and bookings. Money is integer paise; stays use checkout-exclusive dates. Authentication uses scrypt passwords and an HttpOnly session cookie.
 
 See [backend setup and API reference](backend/README.md), [frontend setup](frontend/README.md), and [design guide](frontend/DESIGN.md).
 
-Environment templates are included. Actual environment files, credentials, databases, dependencies, caches, and logs are excluded. A fresh machine creates its database with migrations and the seed. For Turso configuration and opt-in remote tests, follow `backend/README.md` using your own credentials. Cloudinary upload is deferred and needs no configuration locally.
+Environment templates are included. Actual environment files, credentials, databases, dependencies, caches, and logs are excluded. A fresh machine creates its database with migrations and the seed. For production setup, see `backend/README.md`. Cloudinary upload is deferred and needs no configuration locally.
 
 ## Verification
 

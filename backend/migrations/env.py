@@ -5,7 +5,7 @@ from app.config import settings
 from app.db import Base, make_engine
 
 config = context.config
-# Tests pass sqlalchemy.url explicitly; otherwise use DATABASE_URL (a SQLite file or a Turso address).
+# Tests pass sqlalchemy.url explicitly; otherwise use DATABASE_URL.
 url = config.get_main_option("sqlalchemy.url") or settings.database_url
 
 with make_engine(url).connect() as connection:
