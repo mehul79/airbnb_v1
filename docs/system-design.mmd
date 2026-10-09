@@ -1,0 +1,62 @@
+---
+title: Airbnb clone · high-level system design
+config:
+  themeVariables:
+    fontFamily: arial
+    fontSize: 16px
+---
+flowchart LR
+    U(["🧑‍💻 <b>User</b><br/>web browser"])
+
+    subgraph V["▲ Vercel"]
+        direction TB
+        UI["⚛️ <b>Next.js frontend</b><br/>pages · UI · Zustand store"]
+        R["🔀 <b>/api/v1 relay</b><br/>forwards cookies + headers"]
+    end
+
+    subgraph RD["☁️ Render"]
+        direction TB
+        API["⚡ <b>FastAPI backend</b><br/>routers → services → SQLAlchemy"]
+        BOOT["🚀 <b>On start</b><br/>migrations + seed"]
+    end
+
+    DB[("🗄️ <b>SQLite</b><br/>persistent disk")]
+
+    subgraph EXT["🌐 External services"]
+        direction TB
+        OSM["🗺️ <b>OpenStreetMap</b><br/>map tiles"]
+        UNS["🖼️ <b>Unsplash CDN</b><br/>seed photos"]
+        CLD["📤 <b>Cloudinary</b><br/>host photo uploads"]
+    end
+
+    U == "pages" ==> UI
+    U == "JSON · same origin" ==> R
+    R -- "forward" --> API
+    UI -- "server-side fetch" --> API
+    API == "SQL · atomic booking insert" ==> DB
+    BOOT -. "schema + demo data" .-> DB
+    U -. "map tiles" .-> OSM
+    U -. "listing photos" .-> UNS
+    U -. "upload (signed by API)" .-> CLD
+
+    classDef user fill:#ff385c,stroke:#e00b41,color:#ffffff,stroke-width:2px
+    classDef fe fill:#ffffff,stroke:#222222,color:#222222,stroke-width:2px
+    classDef be fill:#ffffff,stroke:#7c3aed,color:#222222,stroke-width:2px
+    classDef db fill:#e0efff,stroke:#2563eb,color:#1e3a8a,stroke-width:2px
+    classDef ext fill:#ffffff,stroke:#16a34a,color:#14532d,stroke-width:1.5px,stroke-dasharray:5 4
+
+    class U user
+    class UI,R fe
+    class API,BOOT be
+    class DB db
+    class OSM,UNS,CLD ext
+
+    style V fill:#f4f4f5,stroke:#222222,stroke-width:1.5px,color:#222222
+    style RD fill:#f3efff,stroke:#7c3aed,stroke-width:1.5px,color:#5b21b6
+    style EXT fill:#effaf3,stroke:#16a34a,stroke-width:1.5px,color:#166534
+
+    linkStyle 0,1 stroke:#ff385c,stroke-width:2.5px
+    linkStyle 2,3 stroke:#222222,stroke-width:2px
+    linkStyle 4 stroke:#2563eb,stroke-width:2.5px
+    linkStyle 5 stroke:#7c3aed,stroke-width:1.5px
+    linkStyle 6,7,8 stroke:#16a34a,stroke-width:1.5px

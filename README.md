@@ -76,6 +76,8 @@ Some listings have no reviews and show "New". Every account can both book and ho
 
 ## Architecture
 
+![System design](docs/system-design.png)
+
 ```
 Browser ──/api/v1/*──▶ Next.js relay (app/api/v1/[...path]/route.ts) ──▶ FastAPI ──▶ SQLite
         ◀── pages ── Next.js Server Components ──── API_BASE_URL ────────▶ FastAPI
@@ -91,6 +93,8 @@ Browser ──/api/v1/*──▶ Next.js relay (app/api/v1/[...path]/route.ts) �
   - Everything persistent lives in SQLite.
 
 ## Database schema
+
+![Database class diagram](docs/db-class-diagram.png)
 
 | Table | Holds |
 |---|---|
