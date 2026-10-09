@@ -52,7 +52,6 @@ npm run dev
 
 Open http://localhost:3000. The API docs are at http://localhost:8000/docs.
 
-Use `localhost`, not `127.0.0.1`: the API only accepts changes coming from `FRONTEND_ORIGIN` (default `http://localhost:3000`).
 
 ## Demo accounts
 
@@ -78,36 +77,10 @@ Some listings have no reviews and show "New". Every account can both book and ho
 
 ![System design](docs/system-design.png)
 
-```
-Browser ──/api/v1/*──▶ Next.js relay (app/api/v1/[...path]/route.ts) ──▶ FastAPI ──▶ SQLite
-        ◀── pages ── Next.js Server Components ──── API_BASE_URL ────────▶ FastAPI
-```
-
-- **FastAPI is the only authority for business data.** Next.js holds no booking or pricing logic; it only formats numbers the API returns.
-- **The relay:** the browser calls relative `/api/v1/...` URLs, and a thin Next route handler forwards them to FastAPI. It forwards cookies, `Origin` and `Idempotency-Key`. Everything stays same-origin, so no CORS setup is needed.
-- **Backend layout:** `app/api` holds thin routers, `app/schemas` the Pydantic request and response models, `app/services` the business rules, and `app/models` the SQLAlchemy tables. Migrations live in `migrations/versions`.
-- **Where state lives:**
-  - Search lives in the URL (shareable, survives refresh).
-  - Form drafts live in component state.
-  - The signed-in user, favourite ids and dialog state live in one Zustand store.
-  - Everything persistent lives in SQLite.
 
 ## Database schema
 
 ![Database class diagram](docs/db-class-diagram.png)
-
-| Table | Holds |
-|---|---|
-| `users` | email, scrypt password hash, display name, age |
-| `sessions` | SHA-256 of the session token, user, expiry (7 days) |
-| `listings` | host, title, description, location and coordinates, type, category, capacity, nightly price and cleaning fee in paise, `archived_at` |
-| `listing_photos` | url, source (`unsplash`, `cloudinary` or `url`), position |
-| `amenities` and `listing_amenities` | amenity catalogue, plus a many-to-many link to listings |
-| `reviews` | listing, author, rating 1-5, text; one per guest per listing |
-| `bookings` | guest, listing, dates, guests, price snapshot (nightly, subtotal, fees, total), title, location and cover photo snapshot, idempotency key |
-| `favorites` | user and listing (composite key) |
-
-Ids are UUID strings. Money is integer paise (INR). CHECK constraints and foreign keys enforce valid values in the database itself.
 
 ## API
 
@@ -122,24 +95,12 @@ All routes are under `/api/v1`. Full request and response shapes are at `/docs`.
 | Hosting | `GET /host/listings`, `POST /host/listings`, `GET`/`PATCH`/`DELETE /host/listings/{id}`, `GET /host/bookings`, `POST /host/uploads/sign` |
 | Health | `GET /health` |
 
-Every error has the shape `{"error": {"code", "message", "fields", "request_id"}}`:
-
-| Status | Meaning |
-|---|---|
-| 401 | Not signed in |
-| 403 | Forbidden, e.g. booking your own listing or a cross-origin change |
-| 404 | Missing, or not yours |
-| 409 | Dates taken, price changed, or idempotency conflict |
-| 422 | Validation |
-| 503 | Database busy; safe to retry |
-
 ## How booking stays correct
 
 1. Read-only checks give a precise error: the dates are valid, the guest count fits, the listing isn't yours, and the quoted price is still current.
 2. The booking is then written by one atomic statement: `INSERT INTO bookings ... SELECT ... WHERE listing active AND price unchanged AND NOT EXISTS (overlapping booking)`. Two requests for the same nights can't both succeed, and no lock is held.
 3. A unique `(guest, Idempotency-Key)` makes a retried request return the same booking instead of a second one.
 
-Tests cover this with threads racing on separate connections.
 
 ## Assumptions
 
@@ -157,24 +118,9 @@ Tests cover this with threads racing on separate connections.
   - Superhost: 4.8+ across 10+ reviews and 3+ completed stays.
 - **Not built:** payments, cancellations and messaging.
 
-## Deployment
-
-- **Frontend:** Vercel, with root `frontend` and env `API_BASE_URL=<backend URL>`.
-- **Backend:** Render, with root `backend`.
-  - Build command: `uv sync --frozen`
-  - Start command: `uv run alembic upgrade head && uv run python -m app.seed && uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-- **Backend env:**
-  - `DATABASE_URL=sqlite:////var/data/app.db` (four slashes: an absolute path on a persistent disk mounted at `/var/data`)
-  - `FRONTEND_ORIGIN=<frontend URL>`
-  - `COOKIE_SECURE=true`
-  - Optional: `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-
-A persistent disk needs a paid Render instance. On the free plan, use `DATABASE_URL=sqlite:///./app.db`. It works, but the data resets to the seed on every restart. See [backend/README.md](backend/README.md) for details.
-
 ## Repository layout
 
 | Path | Contents |
 |---|---|
 | `frontend/` | The Next.js app. `components/` holds feature components and `components/ui/` the shadcn primitives. [DESIGN.md](frontend/DESIGN.md) is the visual spec |
 | `backend/` | The FastAPI app (`app/`), `migrations/`, `tests/`, and the seed (`app/seed.py`, `app/seed_data.py`). [Backend README](backend/README.md) |
-| `AGENTS.md` | Build plan and checklist |

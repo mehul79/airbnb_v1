@@ -37,4 +37,4 @@ npm start
 
 Checkout, confirmation, trips, host CRUD, and persisted favorites remain unfinished. Some actions display Coming soon.
 
-Presentation rules live in [DESIGN.md](DESIGN.md). The execution plan is in [AGENTS.md](../AGENTS.md).
+Presentation rules live in [DESIGN.md](DESIGN.md).

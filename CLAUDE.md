@@ -10,7 +10,6 @@ Airbnb stays marketplace clone for an SDE fullstack assignment: Next.js (TypeScr
 | `.claude/PRD.md` | Requirement IDs (HOME-01, BOOK-02, …), acceptance criteria, product rules, routes |
 | `.claude/system_architecture.md` | Schema, REST contract, booking invariants, auth, deployment |
 | `frontend/DESIGN.md` | Visual tokens and component specs. Wins on *how it looks* |
-| `AGENTS.md` | Phased execution plan and checklist |
 | `frontend/AGENTS.md` | Generated Next.js notice. Do not remove it |
 
 ## Actual repository state (verified 2026-10-09)
@@ -26,7 +25,7 @@ Airbnb stays marketplace clone for an SDE fullstack assignment: Next.js (TypeScr
   - Sonner toaster and TooltipProvider mounted in `app/layout.tsx`
 - No root Git repo. `frontend/` and `backend/` each have their own `.git`. Keep both histories; never reset or delete them.
 
-Before you mark something done or cite a doc's status, check it on disk. When you finish a gate, update the AGENTS.md checklist so it matches reality.
+Before you mark something done or cite a doc's status, check it on disk.
 
 ## Commands
 
@@ -93,7 +92,7 @@ When you add migration, seed, or env commands, record them here and in the READM
   - No JWTs, refresh tokens, CSRF tokens, or throttling.
 - One account type (user decision, 2026-10-09): every user can book and host. There is no role or `can_host` column, and no identity-switch endpoint. The guest/hosting toggle is UI only.
 
-## UI rules (from DESIGN.md and AGENTS.md)
+## UI rules (from DESIGN.md)
 
 The assignment says the look and feel should be **exactly** Airbnb's. Follow DESIGN.md tokens, and where its prose disagrees with them, use these resolved values:
 
@@ -155,10 +154,10 @@ The assignment says the look and feel should be **exactly** Airbnb's. Follow DES
 
 ## Working rules
 
-- Build P0 as vertical slices in the AGENTS.md phase order. When time is short, cut extras, never required flows.
+- Build P0 as vertical slices. When time is short, cut extras, never required flows.
 - Original work only. Don't copy any existing Airbnb clone repository; plagiarism means disqualification.
 - When you add a dependency, give a one-line reason.
 - Tests use temporary SQLite files, with separate connections for contention tests. Never test against demo data.
 - Never commit secrets, `.env`, database files, `.venv`, `node_modules`, or `.next`.
-- Don't mark a requirement done based on mocked frontend data or unchecked screenshots. Verify it end to end, then update the AGENTS.md checklist.
-- If the user changes a decision, update the PRD, the architecture doc, AGENTS.md, and this file together.
+- Don't mark a requirement done based on mocked frontend data or unchecked screenshots. Verify it end to end.
+- If the user changes a decision, update the PRD, the architecture doc, and this file together.
