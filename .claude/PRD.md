@@ -62,7 +62,7 @@ None of these rows is implemented yet. Mark a row done only after its UI and API
 
 - P1 selected: mobile, tablet, and desktop support from DESIGN.md. The assignment lists responsiveness as a bonus; this plan includes it for usable core flows.
 - P1 selected: basic keyboard accessibility, loading/empty/error states, reliable local assets, and server-enforced ownership.
-- P2: interactive map, submitting reviews after a stay, advanced rating aggregation/Superhost qualification, host file-upload UI. (Dark mode was pulled forward at the user's request on 2026-10-11 and is built.)
+- P2: interactive map, submitting reviews after a stay, per-category rating scores. (Rating aggregation, the Superhost badge and host photo upload were pulled forward at the user's request and are built.) (Dark mode was pulled forward at the user's request on 2026-10-11 and is built.)
 - Placeholder-only: guest-host messaging, identity verification, real payments, and live pricing pins.
 - Experiences and Services are visual navigation references, not required booking products. Show Coming soon when activated.
 - Not planned: JWTs, refresh tokens, login throttling, OAuth, email verification/delivery, password reset, MFA, payment cards/refunds, messaging infrastructure, admin moderation, dynamic nightly pricing, multi-currency conversion, tax engines, cancellation/refund workflows.
