@@ -42,9 +42,15 @@ export async function RoomPage({ params, searchParams }: { params: Promise<{ id:
         </aside>
       </div>
 
-      <LazyReviews listingId={listing.id} rating={listing.rating} reviewCount={listing.review_count} />
+      <LazyReviews
+        listingId={listing.id}
+        rating={listing.rating}
+        reviewCount={listing.review_count}
+        favourite={listing.guest_favourite}
+        breakdown={listing.rating_breakdown}
+      />
       <LazyLocation label={`${listing.location_label}, ${listing.country}`} latitude={listing.latitude} longitude={listing.longitude} />
-      <LazyHost host={listing.host} rating={listing.rating} reviewCount={listing.review_count} />
+      <LazyHost host={listing.host} />
       <LazyPolicies maxGuests={listing.max_guests} />
       <LazyNearby listingId={listing.id} region={listing.region} />
 

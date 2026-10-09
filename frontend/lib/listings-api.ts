@@ -17,6 +17,8 @@ export type ListingSummary = {
   photo_alt: string | null
   rating: number | null
   review_count: number
+  guest_favourite: boolean
+  host_superhost: boolean
 }
 
 export type ListingPage = {
@@ -30,7 +32,16 @@ export type ListingPage = {
 export type Amenity = { slug: string; name: string; icon_key: string }
 
 export type Photo = { url: string; alt_text: string; source: string; position: number }
-export type Host = { id: string; display_name: string; avatar_url: string | null; member_since: number }
+export type Host = {
+  id: string
+  display_name: string
+  avatar_url: string | null
+  member_since: number
+  // Over every review of the host's listings, not just the one being viewed.
+  rating: number | null
+  review_count: number
+  superhost: boolean
+}
 
 export type ListingDetail = {
   id: string
@@ -56,6 +67,8 @@ export type ListingDetail = {
   host: Host
   rating: number | null
   review_count: number
+  guest_favourite: boolean
+  rating_breakdown: Record<string, number> // "5".. "1" -> number of reviews
 }
 
 export type Review = {

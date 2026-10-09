@@ -5,10 +5,10 @@ import Link from "next/link"
 import { IconHeart, IconStarFilled } from "@tabler/icons-react"
 
 import { useFavorite } from "@/components/favorites/use-favorite"
-import { Badge } from "@/components/ui/badge"
+import { CardBadge } from "@/components/listings/card-badge"
 import { formatPaise } from "@/lib/format"
 import { listingPhotoSrc } from "@/lib/images"
-import { formatRating, isGuestFavourite, TYPE_LABEL } from "@/lib/labels"
+import { formatRating, TYPE_LABEL } from "@/lib/labels"
 import type { ListingSummary } from "@/lib/listings-api"
 import { cn } from "@/lib/utils"
 
@@ -31,11 +31,7 @@ export function SearchResultCard({ listing }: { listing: ListingSummary }) {
           />
         )}
 
-        {isGuestFavourite(listing) && (
-          <Badge className="absolute top-3 left-3 h-8 rounded-full bg-surface-hover/95 px-4 text-sm font-semibold text-ink">
-            Guest favourite
-          </Badge>
-        )}
+        <CardBadge guestFavourite={listing.guest_favourite} superhost={listing.host_superhost} />
 
         <button
           type="button"

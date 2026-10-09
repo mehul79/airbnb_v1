@@ -8,23 +8,25 @@ import { ReviewsSkeleton } from "@/components/rooms/section-skeletons"
 import { UserAvatar } from "@/components/rooms/user-avatar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { formatRating, isGuestFavourite, plural } from "@/lib/labels"
+import { RatingBreakdown } from "@/components/rooms/rating-breakdown"
+import { formatRating, plural } from "@/lib/labels"
 import type { Review, ReviewPage } from "@/lib/listings-api"
 import { useQuery } from "@/lib/use-query"
 
 const PAGE_SIZE = 6
 const monthYear = new Intl.DateTimeFormat("en-IN", { month: "long", year: "numeric" })
 
-type Props = { listingId: string; rating: number | null; reviewCount: number }
+type Props = { listingId: string; rating: number | null; reviewCount: number; favourite: boolean; breakdown: Record<string, number> }
 
-export default function ReviewsSection({ listingId, rating, reviewCount }: Props) {
+export default function ReviewsSection({ listingId, rating, reviewCount, favourite, breakdown }: Props) {
   const [pages, setPages] = useState(1)
   const first = useQuery<ReviewPage>(reviewCount > 0 ? `/listings/${listingId}/reviews?page=1&page_size=${PAGE_SIZE}` : null)
   const totalPages = first.data?.total_pages ?? 1
 
   return (
     <div className="flex flex-col gap-10 py-12">
-      <RatingSummary rating={rating} reviewCount={reviewCount} favourite={isGuestFavourite({ rating, review_count: reviewCount })} />
+      <RatingSummary rating={rating} reviewCount={reviewCount} favourite={favourite} />
+      <RatingBreakdown breakdown={breakdown} total={reviewCount} />
 
       {reviewCount === 0 ? null : first.error ? (
         <SectionError label="reviews" onRetry={first.retry} />

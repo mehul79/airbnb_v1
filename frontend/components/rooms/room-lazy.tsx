@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic"
 
 import { LazySection } from "@/components/rooms/lazy-section"
-import { isGuestFavourite } from "@/lib/labels"
 import {
   CalendarSkeleton,
   HostSkeleton,
@@ -37,7 +36,7 @@ export function LazyReviews(props: React.ComponentProps<typeof ReviewsSection>) 
   return (
     <LazySection
       id="reviews"
-      skeleton={<ReviewsSkeleton count={props.reviewCount} favourite={isGuestFavourite({ rating: props.rating, review_count: props.reviewCount })} />}
+      skeleton={<ReviewsSkeleton count={props.reviewCount} favourite={props.favourite} />}
       className={rule}
     >
       <ReviewsSection {...props} />
