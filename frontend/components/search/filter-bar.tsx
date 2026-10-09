@@ -66,7 +66,7 @@ export function FilterBar({ amenities, params }: { amenities: Amenity[]; params:
             )}
           </Button>
         </DialogTrigger>
-        <DialogContent className="max-h-[85dvh] gap-0 overflow-hidden rounded-xl p-0 sm:max-w-[640px]">
+        <DialogContent className="max-h-[85dvh] grid-rows-[minmax(0,1fr)] gap-0 overflow-hidden rounded-xl p-0 sm:max-w-[640px]">
           <FiltersForm amenities={amenities} current={current} onApply={(patch) => {
               go(patch)
               setOpen(false)

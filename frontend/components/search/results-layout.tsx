@@ -74,7 +74,7 @@ export function ResultsLayout({ items, params, children }: { items: ListingSumma
         type="button"
         onClick={toggle}
         aria-pressed={mapVisible}
-        className="fixed bottom-6 left-1/2 z-[80] h-12 -translate-x-1/2 gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-background shadow-float hover:bg-ink/90 active:bg-ink"
+        className="fixed bottom-6 left-1/2 z-[80] h-12 [body[data-scroll-locked]_&]:hidden -translate-x-1/2 gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-background shadow-float hover:bg-ink/90 active:bg-ink"
       >
         {/* Desktop shows list and map together, so it hides/shows the map; a phone swaps between them. */}
         {isDesktop ? (desktopMap ? "Hide map" : "Show map") : phoneMap ? "Show list" : "Show map"}
