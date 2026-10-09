@@ -42,3 +42,6 @@ Thumbs.db
 practise_anything
 # Backend tests stay local
 backend/tests/
+
+# Archify diagram output stays local
+docs/archify/
