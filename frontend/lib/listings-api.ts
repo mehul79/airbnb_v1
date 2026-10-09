@@ -14,7 +14,6 @@ export type ListingSummary = {
   category: string
   max_guests: number
   nightly_price_minor: number
-  currency: string
   photo_url: string | null
   photo_alt: string | null
   rating: number | null
@@ -40,7 +39,6 @@ export type Photo = { url: string; alt_text: string; source: string; position: n
 export type Host = {
   id: string
   display_name: string
-  avatar_url: string | null
   member_since: number
   // Over every review of the host's listings, not just the one being viewed.
   rating: number | null
@@ -66,7 +64,6 @@ export type ListingDetail = {
   bathrooms: number
   nightly_price_minor: number
   cleaning_fee_minor: number
-  currency: string
   photos: Photo[]
   amenities: Amenity[]
   host: Host
@@ -81,7 +78,7 @@ export type Review = {
   rating: number
   body: string
   created_at: number
-  author: { display_name: string; avatar_url: string | null }
+  author: { display_name: string }
 }
 export type ReviewPage = { items: Review[]; page: number; page_size: number; total: number; total_pages: number }
 // A booking as GET /me/bookings returns it. Title, place and photo are copies taken at
@@ -101,7 +98,6 @@ export type Booking = {
   cleaning_fee_minor: number
   service_fee_minor: number
   total_minor: number
-  currency: string
   listing_title: string
   location: string
   cover_photo_url: string
@@ -118,7 +114,6 @@ export type Quote = {
   cleaning_fee_minor: number
   service_fee_minor: number
   total_minor: number
-  currency: string
   quote_fingerprint: string
 }
 

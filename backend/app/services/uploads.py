@@ -5,25 +5,33 @@ secret never leaves the backend. A signature covers the folder and timestamp, wh
 signature cannot be reused for another folder, and it expires on Cloudinary's side after an hour.
 """
 import hashlib
+import os
 import re
 import time
 from urllib.parse import unquote, urlparse
 
-from app.config import settings
+from dotenv import load_dotenv
+
 from app.errors import AppError
+
+load_dotenv()
+# Optional: without these the host form falls back to pasted links.
+CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "")
+API_KEY = os.getenv("CLOUDINARY_API_KEY", "")
+API_SECRET = os.getenv("CLOUDINARY_API_SECRET", "")
 
 ALLOWED_FORMATS = "jpg,jpeg,png,webp"
 ROOT_FOLDER = "airbnb-clone/listings"
 
 
 def configured() -> bool:
-    return bool(settings.cloudinary_cloud_name and settings.cloudinary_api_key and settings.cloudinary_api_secret)
+    return bool(CLOUD_NAME and API_KEY and API_SECRET)
 
 
 def _signature(params: dict[str, str]) -> str:
     # Cloudinary: sort the params, join as k=v&k=v, append the secret, SHA-1.
     to_sign = "&".join(f"{k}={v}" for k, v in sorted(params.items()))
-    return hashlib.sha1((to_sign + settings.cloudinary_api_secret).encode()).hexdigest()
+    return hashlib.sha1((to_sign + API_SECRET).encode()).hexdigest()
 
 
 def sign_upload(user_id: str) -> dict:
@@ -36,8 +44,8 @@ def sign_upload(user_id: str) -> dict:
         "timestamp": str(int(time.time())),
     }
     return {
-        "cloud_name": settings.cloudinary_cloud_name,
-        "api_key": settings.cloudinary_api_key,
+        "cloud_name": CLOUD_NAME,
+        "api_key": API_KEY,
         "signature": _signature(params),
         **params,
     }

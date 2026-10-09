@@ -29,7 +29,7 @@ Docs at http://localhost:8000/docs. Everything is under `/api/v1`.
 | `POST /auth/signout` | Delete the session, clear cookie |
 | `GET /me` | Current user, or 401 |
 
-Passwords use stdlib scrypt. The cookie holds a random token; the database stores only its SHA-256. The cookie is HttpOnly, SameSite=Lax, and lasts 7 days. Non-GET requests must carry `Origin: $FRONTEND_ORIGIN`, otherwise 403. Every error uses the envelope `{"error": {"code", "message", "fields", "request_id"}}`.
+Passwords are hashed with Argon2id (pwdlib). The cookie holds a random token; the database stores only its SHA-256. The cookie is HttpOnly, SameSite=Lax, and lasts 7 days. Non-GET requests must carry `Origin: $FRONTEND_ORIGIN`, otherwise 403. Every error uses the envelope `{"error": {"code", "message", "fields"}}`.
 
 ## Listings API (implemented)
 
@@ -75,6 +75,7 @@ The server uses the same SQLite engine, with the file on a persistent disk (Rend
 DATABASE_URL=sqlite:////var/data/app.db     # absolute path: four slashes (three would be a relative path and be wiped on redeploy)
 FRONTEND_ORIGIN=<the Vercel URL>
 COOKIE_SECURE=true
+TZ=Asia/Kolkata                              # "today" is the server's local date; Render runs in UTC, so set this as a real env var (not in .env)
 Build:  uv sync --frozen
 Start:  uv run alembic upgrade head && uv run python -m app.seed && uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```

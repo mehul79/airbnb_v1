@@ -6,7 +6,6 @@ from sqlalchemy import exists, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app import clock
 from app.errors import AppError
 from app.models import Amenity, Booking, Listing, ListingPhoto, Review, User, listing_amenities
 from app.schemas.listings import (
@@ -58,7 +57,6 @@ def summary(
         category=listing.category,
         max_guests=listing.max_guests,
         nightly_price_minor=listing.nightly_price_minor,
-        currency=listing.currency,
         photo_url=cover.url if cover else None,
         photo_alt=cover.alt_text if cover else None,
         photo_source=cover.source if cover else None,
@@ -200,13 +198,11 @@ def detail(db: Session, listing_id: str) -> ListingDetail:
         bathrooms=listing.bathrooms,
         nightly_price_minor=listing.nightly_price_minor,
         cleaning_fee_minor=listing.cleaning_fee_minor,
-        currency=listing.currency,
         photos=listing.photos,
         amenities=listing.amenities,
         host={
             "id": host.id,
             "display_name": host.display_name,
-            "avatar_url": host.avatar_url,
             "member_since": host.created_at,
             "rating": host_stats.rating,
             "review_count": host_stats.review_count,
@@ -237,7 +233,7 @@ def reviews(db: Session, listing_id: str, page: int, page_size: int) -> ReviewPa
                 "rating": review.rating,
                 "body": review.body,
                 "created_at": review.created_at,
-                "author": {"display_name": author.display_name, "avatar_url": author.avatar_url},
+                "author": {"display_name": author.display_name},
             }
             for review, author in rows
         ],
@@ -252,7 +248,7 @@ def add_review(db: Session, listing_id: str, user_id: str, rating: int, body: st
     """A guest can review a home once, and only after a stay there has ended."""
     get_active(db, listing_id)
     stayed = db.scalar(
-        select(exists().where(Booking.listing_id == listing_id, Booking.guest_id == user_id, Booking.check_out <= clock.today()))
+        select(exists().where(Booking.listing_id == listing_id, Booking.guest_id == user_id, Booking.check_out <= date.today()))
     )
     if not stayed:
         raise AppError(403, "NOT_ELIGIBLE", "You can review a home after your stay there has ended.")
@@ -269,13 +265,13 @@ def add_review(db: Session, listing_id: str, user_id: str, rating: int, body: st
         rating=review.rating,
         body=review.body,
         created_at=review.created_at,
-        author={"display_name": author.display_name, "avatar_url": author.avatar_url},
+        author={"display_name": author.display_name},
     )
 
 
 def availability(db: Session, listing_id: str, start: date | None, end: date | None) -> AvailabilityOut:
     get_active(db, listing_id)
-    start = start or clock.today()
+    start = start or date.today()
     end = end or start + timedelta(days=MAX_WINDOW_DAYS - 1)
     if end <= start or (end - start).days > MAX_WINDOW_DAYS:
         raise AppError(
@@ -302,7 +298,6 @@ def build_quote(listing: Listing, check_in: date, check_out: date, guests: int) 
         check_in=check_in,
         check_out=check_out,
         guests=guests,
-        currency=listing.currency,
         quote_fingerprint=pricing.fingerprint(listing.id, check_in, check_out, guests, price),
         **price.__dict__,
     )

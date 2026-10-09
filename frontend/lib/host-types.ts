@@ -21,7 +21,6 @@ export type HostListing = {
   bathrooms: number
   nightly_price_minor: number
   cleaning_fee_minor: number
-  currency: string
   photos: HostPhoto[]
   amenities: string[] // slugs
   archived_at: number | null
@@ -50,7 +49,6 @@ export type HostBooking = {
   check_out: string
   nights: number
   total_minor: number
-  currency: string
   phase: "upcoming" | "past"
   created_at: number
 }

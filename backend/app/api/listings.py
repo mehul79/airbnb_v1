@@ -21,7 +21,7 @@ from app.schemas.listings import (
 )
 from app.services import listings as listing_service
 
-router = APIRouter(tags=["listings"])
+router = APIRouter()
 
 
 @router.get("/amenities", response_model=list[AmenityOut])

@@ -1,5 +1,5 @@
 // Thin fetch wrapper for the same-origin /api/v1 relay. Errors follow the backend's
-// envelope: {"error": {"code", "message", "fields", "request_id"}}.
+// envelope: {"error": {"code", "message", "fields"}}.
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -28,7 +28,6 @@ async function send<T>(method: string, path: string, body?: unknown, headers?: R
   const data = await res.json().catch(() => null)
   if (!res.ok) {
     const { code, message, fields, ...rest } = data?.error ?? {}
-    delete rest.request_id
     throw new ApiError(res.status, code ?? "UNKNOWN", message ?? "Something went wrong.", fields, rest)
   }
   return data as T

@@ -1,12 +1,12 @@
 """Booking and trips. Booking is the one place two requests can fight over the same nights."""
 import hashlib
+from datetime import date
 from math import ceil
 
 from sqlalchemy import exists, func, insert, literal, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app import clock
 from app.errors import AppError
 from app.models import Booking, Listing, ListingPhoto, Review
 from app.models.user import new_id, now
@@ -21,7 +21,7 @@ def to_out(b: Booking, reviewed: bool = False) -> BookingOut:
         reference=b.id[:8].upper(),
         listing_id=b.listing_id,
         status=b.status,
-        phase="past" if b.check_out <= clock.today() else "upcoming",
+        phase="past" if b.check_out <= date.today() else "upcoming",
         check_in=b.check_in,
         check_out=b.check_out,
         guests=b.guests,
@@ -31,7 +31,6 @@ def to_out(b: Booking, reviewed: bool = False) -> BookingOut:
         cleaning_fee_minor=b.cleaning_fee_minor,
         service_fee_minor=b.service_fee_minor,
         total_minor=b.total_minor,
-        currency=b.currency,
         listing_title=b.listing_title_snapshot,
         location=b.location_snapshot,
         cover_photo_url=b.cover_photo_snapshot,
@@ -67,22 +66,30 @@ def _price_changed(quote) -> AppError:
 
 # Order matters: it must match the select list in create().
 _COLUMNS = [
-    Booking.id, Booking.listing_id, Booking.guest_id, Booking.check_in, Booking.check_out, Booking.guests,
-    Booking.status, Booking.nights, Booking.nightly_price_minor, Booking.subtotal_minor, Booking.cleaning_fee_minor,
-    Booking.service_fee_minor, Booking.total_minor, Booking.currency, Booking.listing_title_snapshot,
-    Booking.location_snapshot, Booking.cover_photo_snapshot, Booking.idempotency_key, Booking.request_fingerprint,
+    Booking.id,
+    Booking.listing_id,
+    Booking.guest_id,
+    Booking.check_in,
+    Booking.check_out,
+    Booking.guests,
+    Booking.status,
+    Booking.nights,
+    Booking.nightly_price_minor,
+    Booking.subtotal_minor,
+    Booking.cleaning_fee_minor,
+    Booking.service_fee_minor,
+    Booking.total_minor,
+    Booking.listing_title_snapshot,
+    Booking.location_snapshot,
+    Booking.cover_photo_snapshot,
+    Booking.idempotency_key,
+    Booking.request_fingerprint,
     Booking.created_at,
-]
+]   
 
 
 def create(db: Session, guest_id: str, data: BookingIn, idempotency_key: str) -> tuple[Booking, bool]:
     """Return (booking, created). created is False when this is a retry of an earlier request.
-
-    Everything before the insert only reads, to give clear errors. The decision itself is the insert:
-    one INSERT ... SELECT that writes the booking only if, at that instant, the listing is still active,
-    still at the quoted price, and no confirmed booking shares a night. The database runs one statement
-    atomically, so two requests for the same nights cannot both succeed, however they interleave.
-    No lock or long-open transaction is needed, so other writers are never held up.
     """
     fingerprint = _request_fingerprint(data)
 
@@ -106,7 +113,7 @@ def create(db: Session, guest_id: str, data: BookingIn, idempotency_key: str) ->
         literal(booking_id), Listing.id, literal(guest_id), literal(data.check_in), literal(data.check_out),
         literal(data.guests), literal("confirmed"), literal(quote.nights), literal(quote.nightly_price_minor),
         literal(quote.subtotal_minor), literal(quote.cleaning_fee_minor), literal(quote.service_fee_minor),
-        literal(quote.total_minor), literal(quote.currency), Listing.title, Listing.location_label, cover_photo,
+        literal(quote.total_minor), Listing.title, Listing.location_label, cover_photo,
         literal(idempotency_key), literal(fingerprint), literal(now()),
     ).where(
         Listing.id == listing.id,
@@ -153,7 +160,7 @@ def get_for_guest(db: Session, guest_id: str, booking_id: str) -> Booking:
 
 
 def trips(db: Session, guest_id: str, phase: str, page: int, page_size: int) -> BookingPage:
-    today = clock.today()
+    today = date.today()
     conditions = [Booking.guest_id == guest_id]
     # A stay is upcoming until its checkout day arrives.
     if phase == "upcoming":

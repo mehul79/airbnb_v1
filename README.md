@@ -88,7 +88,7 @@ All routes are under `/api/v1`. Full request and response shapes are at `/docs`.
 
 | Area | Endpoints |
 |---|---|
-| Auth | `POST /auth/check`, `/auth/signup`, `/auth/signin`, `/auth/signout`; `GET /me`, `PATCH /me` |
+| Auth | `POST /auth/signup`, `/auth/signin`, `/auth/signout`; `GET /me`, `PATCH /me` |
 | Listings | `GET /listings` (search, filters, pages), `GET /listings/map`, `GET /listings/{id}`, `GET /listings/{id}/reviews`, `POST /listings/{id}/reviews`, `GET /listings/{id}/availability`, `POST /listings/{id}/quote`, `GET /amenities` |
 | Bookings | `POST /bookings` (needs an `Idempotency-Key` header), `GET /bookings/{id}`, `GET /me/bookings` |
 | Favourites | `GET /me/favorites`, `GET /me/favorites/ids`, `PUT /me/favorites/{id}`, `DELETE /me/favorites/{id}` |

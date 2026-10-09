@@ -13,7 +13,7 @@ from app.schemas.host import (
 from app.services import host as host_service
 from app.services import uploads
 
-router = APIRouter(tags=["host"])
+router = APIRouter()
 
 
 @router.get("/host/listings", response_model=HostListingList)

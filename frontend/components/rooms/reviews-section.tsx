@@ -102,7 +102,7 @@ function ReviewCard({ review }: { review: Review }) {
   return (
     <li className="flex flex-col gap-3">
       <div className="flex items-center gap-3">
-        <UserAvatar id={review.author.display_name} name={review.author.display_name} url={review.author.avatar_url} className="size-10" />
+        <UserAvatar id={review.author.display_name} name={review.author.display_name} className="size-10" />
         <p className="text-base font-semibold text-ink">{review.author.display_name}</p>
       </div>
       <p className="flex items-center gap-1 text-sm text-ink">

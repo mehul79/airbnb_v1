@@ -30,12 +30,10 @@ def add(db: Session, user_id: str, listing_id: str) -> None:
     try:
         db.commit()
     except IntegrityError:
-        # Two requests saved it at once; the primary key kept it to one row, which is the goal.
         db.rollback()
 
 
 def remove(db: Session, user_id: str, listing_id: str) -> None:
-    """Idempotent: removing something that is not saved is fine."""
     favorite = db.get(Favorite, (user_id, listing_id))
     if favorite is not None:
         db.delete(favorite)

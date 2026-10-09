@@ -1,18 +1,13 @@
 """Rating aggregation and the two reputation badges. The rules live here, in one place; the
 frontend only shows what the API says (it never decides who is a Superhost).
-
-Guest favourite is per listing. Superhost is per host, over all of their listings.
-
-Airbnb's real Superhost rules also need a 90% response rate and under 1% cancellations. This app
-has no messaging and no cancellations yet, so those two are not checked; the thresholds below are
-scaled down from Airbnb's (10 stays, 4.8 stars) to fit a small demo.
 """
+
 from dataclasses import dataclass
+from datetime import date
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app import clock
 from app.models import Booking, Listing, Review
 
 GUEST_FAVOURITE_MIN_RATING = 4.8
@@ -65,7 +60,7 @@ def host_stats(db: Session, host_ids: list[str]) -> dict[str, HostStats]:
         db.execute(
             select(Listing.host_id, func.count())
             .join(Booking, Booking.listing_id == Listing.id)
-            .where(Listing.host_id.in_(ids), Booking.status == "confirmed", Booking.check_out <= clock.today())
+            .where(Listing.host_id.in_(ids), Booking.status == "confirmed", Booking.check_out <= date.today())
             .group_by(Listing.host_id)
         ).all()
     )

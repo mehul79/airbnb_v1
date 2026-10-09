@@ -116,7 +116,6 @@ class HostListingOut(BaseModel):
     bathrooms: float
     nightly_price_minor: int
     cleaning_fee_minor: int
-    currency: str
     photos: list[HostPhotoOut]
     amenities: list[str]  # slugs
     archived_at: int | None
@@ -152,7 +151,6 @@ class HostBookingOut(BaseModel):
     check_out: date
     nights: int
     total_minor: int
-    currency: str
     phase: Literal["upcoming", "past"]
     created_at: int
 

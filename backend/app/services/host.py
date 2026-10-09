@@ -1,7 +1,4 @@
-"""Host-side listing management (HOST-01..03). Every query filters on host_id = the signed-in user.
-
-There is no host role: whoever creates a listing owns it, and ownership is the only check.
-"""
+from datetime import date
 from math import ceil
 from urllib.parse import urlparse
 
@@ -9,7 +6,6 @@ from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app import clock
 from app.errors import AppError
 from app.models import Amenity, Booking, Listing, ListingPhoto, User
 from app.models.user import now
@@ -49,7 +45,7 @@ def to_out(listing: Listing) -> HostListingOut:
             for name in (
                 "id", "title", "description", "city", "region", "country", "location_label", "latitude", "longitude",
                 "property_type", "category", "max_guests", "bedrooms", "beds", "bathrooms", "nightly_price_minor",
-                "cleaning_fee_minor", "currency", "archived_at", "created_at",
+                "cleaning_fee_minor", "archived_at", "created_at",
             )
         },
         photos=[HostPhotoOut.model_validate(p) for p in listing.photos],
@@ -134,7 +130,7 @@ def archive(db: Session, host_id: str, listing_id: str) -> None:
 
 
 def dashboard(db: Session, host_id: str, include_archived: bool) -> HostListingList:
-    today = clock.today()
+    today = date.today()
     upcoming = (
         select(Booking.listing_id, func.count().label("n"))
         .where(Booking.check_out > today)
@@ -170,7 +166,7 @@ def reservations(
     db: Session, host_id: str, listing_id: str | None, phase: str, page: int, page_size: int
 ) -> HostBookingPage:
     """Bookings on the caller's listings only. A listing_id that is not theirs simply matches nothing."""
-    today = clock.today()
+    today = date.today()
     conditions = [Listing.host_id == host_id]
     if listing_id:
         conditions.append(Listing.id == listing_id)
@@ -200,7 +196,6 @@ def reservations(
                 check_out=b.check_out,
                 nights=b.nights,
                 total_minor=b.total_minor,
-                currency=b.currency,
                 phase="past" if b.check_out <= today else "upcoming",
                 created_at=b.created_at,
             )

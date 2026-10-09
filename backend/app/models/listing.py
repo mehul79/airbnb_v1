@@ -1,4 +1,4 @@
-from sqlalchemy import CheckConstraint, Column, ForeignKey, Index, String, Table, Text, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, ForeignKey, String, Table, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
@@ -11,8 +11,6 @@ listing_amenities = Table(
     Base.metadata,
     Column("listing_id", ForeignKey("listings.id", ondelete="CASCADE"), primary_key=True),
     Column("amenity_id", ForeignKey("amenities.id"), primary_key=True),
-    # Reverse lookup for "listings that have amenity X" filters.
-    Index("ix_listing_amenities_amenity_listing", "amenity_id", "listing_id"),
 )
 
 
@@ -35,12 +33,6 @@ class Listing(Base):
         CheckConstraint("bedrooms >= 0 AND beds >= 0 AND bathrooms >= 0", name="ck_listings_rooms"),
         CheckConstraint("nightly_price_minor > 0", name="ck_listings_price"),
         CheckConstraint("cleaning_fee_minor >= 0", name="ck_listings_cleaning_fee"),
-        CheckConstraint("currency = 'INR'", name="ck_listings_currency"),
-        # Default explore order and archived filter.
-        Index("ix_listings_archived_created_id", "archived_at", "created_at", "id"),
-        Index("ix_listings_host_archived", "host_id", "archived_at"),
-        Index("ix_listings_city", "city"),
-        Index("ix_listings_property_type", "property_type"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
@@ -62,7 +54,6 @@ class Listing(Base):
     # Money is integer paise (1/100 rupee) so arithmetic is exact.
     nightly_price_minor: Mapped[int]
     cleaning_fee_minor: Mapped[int]
-    currency: Mapped[str] = mapped_column(String(3), default="INR", server_default="INR")
     # "Delete" means archive: bookings keep pointing at the row.
     archived_at: Mapped[int | None]
     created_at: Mapped[int] = mapped_column(default=now)
@@ -71,6 +62,8 @@ class Listing(Base):
     photos: Mapped[list["ListingPhoto"]] = relationship(
         order_by="ListingPhoto.position", cascade="all, delete-orphan"
     )
+
+    # uses intermidate listing_amenities for relation
     amenities: Mapped[list[Amenity]] = relationship(secondary=listing_amenities, order_by=Amenity.name)
 
 
@@ -97,13 +90,12 @@ class ListingPhoto(Base):
 
 
 class Review(Base):
-    """Seeded and read-only for now."""
+    """One review per guest per home, written after a stay there has ended."""
 
     __tablename__ = "reviews"
     __table_args__ = (
         CheckConstraint("rating BETWEEN 1 AND 5", name="ck_reviews_rating"),
         UniqueConstraint("listing_id", "author_id", name="uq_reviews_listing_author"),
-        Index("ix_reviews_listing_id", "listing_id"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)

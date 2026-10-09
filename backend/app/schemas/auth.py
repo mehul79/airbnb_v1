@@ -9,14 +9,6 @@ class SignupIn(BaseModel):
     age: int = Field(ge=18, le=120)
 
 
-class EmailIn(BaseModel):
-    email: EmailStr
-
-
-class EmailExistsOut(BaseModel):
-    exists: bool
-
-
 class SigninIn(BaseModel):
     email: EmailStr
     password: str = Field(max_length=128)
@@ -32,6 +24,5 @@ class UserOut(BaseModel):
     id: str
     email: str
     display_name: str
-    avatar_url: str | None
     age: int | None
-    created_at: int  # UTC Unix seconds; the profile shows the join year
+    created_at: int  

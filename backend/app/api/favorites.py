@@ -6,7 +6,7 @@ from app.api.deps import CurrentUser, DbDep
 from app.schemas.listings import FavoriteIds, ListingPage
 from app.services import favorites as favorite_service
 
-router = APIRouter(tags=["favorites"])
+router = APIRouter()
 
 
 @router.get("/me/favorites/ids", response_model=FavoriteIds)

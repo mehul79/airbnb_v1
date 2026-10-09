@@ -4,7 +4,6 @@ from datetime import date
 from sqlalchemy import and_, exists, select
 from sqlalchemy.orm import Session
 
-from app import clock
 from app.errors import AppError
 from app.models import Booking
 
@@ -14,7 +13,7 @@ MAX_NIGHTS = 365
 def validate_dates(check_in: date, check_out: date) -> int:
     """Return the number of nights, or raise 422 naming the bad field."""
     fields = {}
-    if check_in < clock.today():
+    if check_in < date.today():
         fields["check_in"] = "Check-in can't be in the past."
     if check_out <= check_in:
         fields["check_out"] = "Check-out must be after check-in."
@@ -34,14 +33,13 @@ def validate_guests(guests: int, max_guests: int) -> None:
         )
 
 
+# returns a sql query op 
 def overlapping(check_in: date, check_out: date):
-    """SQL condition: a confirmed booking that shares at least one night with [check_in, check_out).
-
-    Adjacent stays do not overlap, so a guest can arrive on the previous guest's checkout day.
-    """
+    # SQL condition: a confirmed booking that shares at least one night with [check_in, check_out).
     return and_(Booking.status == "confirmed", Booking.check_in < check_out, Booking.check_out > check_in)
 
 
+# returns true or false
 def is_available(db: Session, listing_id: str, check_in: date, check_out: date) -> bool:
     taken = exists().where(Booking.listing_id == listing_id, overlapping(check_in, check_out))
     return not db.scalar(select(taken))

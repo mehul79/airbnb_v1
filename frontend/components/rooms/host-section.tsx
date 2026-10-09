@@ -19,7 +19,7 @@ export default function HostSection({ host }: { host: Host }) {
       <div className="flex flex-col gap-10 md:flex-row md:gap-16">
         <div className="flex w-full max-w-[380px] items-center justify-between gap-6 rounded-3xl bg-background p-8 shadow-[0_6px_20px_rgba(0,0,0,0.12)]">
           <div className="flex flex-col items-center gap-2 text-center">
-            <UserAvatar id={host.id} name={host.display_name} url={host.avatar_url} className="size-24 text-3xl" />
+            <UserAvatar id={host.id} name={host.display_name} className="size-24 text-3xl" />
             <p className="text-[26px] leading-8 font-bold text-ink">{host.display_name}</p>
             <p className="text-sm font-medium text-ink">{host.superhost ? "Superhost" : "Host"}</p>
           </div>

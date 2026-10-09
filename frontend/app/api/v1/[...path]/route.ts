@@ -25,8 +25,6 @@ async function relay(request: NextRequest, { params }: { params: Promise<{ path:
   const responseHeaders = new Headers()
   const contentType = upstream.headers.get("content-type")
   if (contentType) responseHeaders.set("content-type", contentType)
-  const requestId = upstream.headers.get("x-request-id")
-  if (requestId) responseHeaders.set("x-request-id", requestId)
   for (const cookie of upstream.headers.getSetCookie()) responseHeaders.append("set-cookie", cookie)
 
   return new Response(upstream.status === 204 ? null : upstream.body, {

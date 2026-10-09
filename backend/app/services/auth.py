@@ -1,7 +1,8 @@
 import hashlib
-import hmac
 import secrets
 
+from pwdlib import PasswordHash
+from pwdlib.exceptions import UnknownHashError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -12,20 +13,19 @@ from app.models.user import now
 
 SESSION_SECONDS = 7 * 24 * 3600
 
-# scrypt parameters (the stdlib defaults recommended for interactive logins).
-_N, _R, _P = 2**14, 8, 1
+# Argon2id with the library's recommended settings. The salt and parameters are stored inside the hash string.
+_hasher = PasswordHash.recommended()
 
 
 def hash_password(password: str) -> str:
-    salt = secrets.token_bytes(16)
-    digest = hashlib.scrypt(password.encode(), salt=salt, n=_N, r=_R, p=_P)
-    return f"scrypt${salt.hex()}${digest.hex()}"
+    return _hasher.hash(password)
 
 
 def verify_password(password: str, stored: str) -> bool:
-    _, salt_hex, digest_hex = stored.split("$")
-    digest = hashlib.scrypt(password.encode(), salt=bytes.fromhex(salt_hex), n=_N, r=_R, p=_P)
-    return hmac.compare_digest(digest, bytes.fromhex(digest_hex))
+    try:
+        return _hasher.verify(password, stored)
+    except UnknownHashError:  # not an argon2 hash
+        return False
 
 
 # Checked when the email is unknown, so a miss takes as long as a wrong password.
@@ -42,10 +42,6 @@ def create_session(db: Session, user: User) -> str:
     db.add(UserSession(user_id=user.id, token_hash=hash_token(token), expires_at=now() + SESSION_SECONDS))
     db.commit()
     return token
-
-
-def email_exists(db: Session, email: str) -> bool:
-    return db.scalar(select(User.id).where(User.email == email.lower())) is not None
 
 
 def signup(db: Session, email: str, password: str, display_name: str, age: int) -> User:

@@ -3,7 +3,7 @@ from sqlalchemy import text
 
 from app.api.deps import DbDep
 
-router = APIRouter(tags=["health"])
+router = APIRouter()
 
 
 @router.get("/health")

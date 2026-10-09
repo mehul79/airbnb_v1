@@ -5,12 +5,11 @@ so edits and bookings made after the first run are never overwritten.
 """
 import uuid
 
-from datetime import timedelta
+from datetime import date, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app import clock
 from app.db import SessionLocal
 from app.models import Amenity, Booking, Listing, ListingPhoto, Review, User
 from app.models.user import now
@@ -32,13 +31,15 @@ def seed(db: Session) -> None:
     started = now()
 
     users: dict[str, User] = {}
-    password_hash = None  # scrypt is slow on purpose; hash once and reuse for every demo user
+    password_hash = None  # argon2 is slow on purpose; hash once and reuse for every demo user
     for key, email, name in USERS:
         user = db.get(User, stable_id("user", key))
+        password_hash = password_hash or hash_password(DEMO_PASSWORD)
         if user is None:
-            password_hash = password_hash or hash_password(DEMO_PASSWORD)
             user = User(id=stable_id("user", key), email=email, password_hash=password_hash, display_name=name)
             db.add(user)
+        elif not user.password_hash.startswith("$argon2"):
+            user.password_hash = password_hash  # demo user from before the switch to argon2
         users[key] = user
 
     amenities: dict[str, Amenity] = {}
@@ -114,7 +115,7 @@ def seed(db: Session) -> None:
 
     # Bookings come last because they point at listings and users. Dates are relative to the
     # first run only: a booking that already exists is never moved by a later run.
-    today = clock.today()
+    today = date.today()
     for slug, guest, offset, nights in BOOKINGS:
         booking_id = stable_id("booking", f"{slug}:{guest}:{offset}")
         if db.get(Booking, booking_id) is not None:

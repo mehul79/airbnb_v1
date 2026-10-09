@@ -1,39 +1,33 @@
-from collections.abc import Iterator
-from pathlib import Path
+import os
 
-from sqlalchemy import create_engine, event, make_url
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from dotenv import load_dotenv
+from sqlalchemy import create_engine, event
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
-from app.config import settings
+load_dotenv()
 
 
 class Base(DeclarativeBase):
     pass
 
 
-def make_engine(url: str, busy_timeout: float = 5.0) -> Engine:
-    """SQLite file engine. busy_timeout is how long a writer waits for the write lock."""
-    path = make_url(url).database
-    if path and path != ":memory:":
-        # SQLite creates the file but not its folder; without this a missing folder is "unable to open database file".
-        Path(path).parent.mkdir(parents=True, exist_ok=True)
+def make_engine(url: str, busy_timeout: float = 5.0):
+    """busy_timeout is how long a writer waits for SQLite's write lock. A function so tests can use their own file."""
     engine = create_engine(url, connect_args={"timeout": busy_timeout})
 
+    # Whenever a new connection is created, SQLAlchemy automatically runs these two SQLite settings.
     @event.listens_for(engine, "connect")
-    def _sqlite_pragmas(dbapi_conn, _record):
-        # SQLite ignores foreign keys unless asked, per connection.
-        dbapi_conn.execute("PRAGMA foreign_keys=ON")
-        # WAL: readers don't block the writer or each other; the setting persists in the file.
-        dbapi_conn.execute("PRAGMA journal_mode=WAL")
+    def _pragmas(conn, _record):
+        conn.execute("PRAGMA foreign_keys=ON")  # off by default in SQLite, per connection
+        conn.execute("PRAGMA journal_mode=WAL")  # readers and the writer don't block each other
 
     return engine
 
 
-engine = make_engine(settings.database_url)
+engine = make_engine(os.getenv("DATABASE_URL", "sqlite:///./dev.db"))
 SessionLocal = sessionmaker(engine, expire_on_commit=False)
 
 
-def get_db() -> Iterator[Session]:
+def get_db():
     with SessionLocal() as db:
         yield db

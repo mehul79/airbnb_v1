@@ -31,7 +31,6 @@ class BookingOut(BaseModel):
     cleaning_fee_minor: int
     service_fee_minor: int
     total_minor: int
-    currency: str
     # Copied at booking time, so they survive later edits and archiving of the listing.
     listing_title: str
     location: str

@@ -64,7 +64,7 @@ export function RoomOverview({ listing }: { listing: ListingDetail }) {
       )}
 
       <section className={`${divider} flex items-center gap-4 py-6`}>
-        <UserAvatar id={listing.host.id} name={listing.host.display_name} url={listing.host.avatar_url} className="size-10" />
+        <UserAvatar id={listing.host.id} name={listing.host.display_name} className="size-10" />
         <div>
           <p className="text-base font-semibold text-ink">Hosted by {listing.host.display_name}</p>
           <p className="flex items-center gap-1.5 text-sm text-muted-foreground">

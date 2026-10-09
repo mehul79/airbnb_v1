@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.vocab import Category, PropertyType
 
@@ -14,7 +14,7 @@ class SearchParams(BaseModel):
     guests: int = Field(1, ge=1, le=50)
     category: Category | None = None
     property_type: PropertyType | None = None
-    # Prices are nightly base prices in paise, fees excluded. Both ends are inclusive.
+    # Prices are nightly base prices in paise
     min_price_minor: int | None = Field(None, ge=0)
     max_price_minor: int | None = Field(None, ge=0)
     # Repeat the parameter to require several: ?amenity=pool&amenity=wifi
@@ -53,7 +53,6 @@ class ListingSummary(BaseModel):
     category: str
     max_guests: int
     nightly_price_minor: int
-    currency: str
     photo_url: str | None
     photo_alt: str | None
     photo_source: str | None
@@ -89,7 +88,6 @@ class MapPage(BaseModel):
 class HostOut(BaseModel):
     id: str
     display_name: str
-    avatar_url: str | None
     member_since: int  # UTC Unix seconds
     # Over every review of this host's listings (not just the one being viewed).
     rating: float | None
@@ -115,7 +113,6 @@ class ListingDetail(BaseModel):
     bathrooms: float
     nightly_price_minor: int
     cleaning_fee_minor: int
-    currency: str
     photos: list[PhotoOut]
     amenities: list[AmenityOut]
     host: HostOut
@@ -128,7 +125,6 @@ class ListingDetail(BaseModel):
 
 class ReviewAuthor(BaseModel):
     display_name: str
-    avatar_url: str | None
 
 
 class ReviewOut(BaseModel):
@@ -140,16 +136,10 @@ class ReviewOut(BaseModel):
 
 
 class ReviewIn(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)  # trimmed before the length check
+
     rating: int = Field(ge=1, le=5)
     body: str = Field(min_length=10, max_length=2000)
-
-    @field_validator("body")
-    @classmethod
-    def trim(cls, v: str) -> str:
-        v = v.strip()
-        if len(v) < 10:
-            raise ValueError("Tell future guests a little more (at least 10 characters).")
-        return v
 
 
 class ReviewPage(BaseModel):
@@ -188,5 +178,4 @@ class QuoteOut(BaseModel):
     cleaning_fee_minor: int
     service_fee_minor: int
     total_minor: int
-    currency: str
     quote_fingerprint: str

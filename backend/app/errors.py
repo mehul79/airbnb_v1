@@ -27,7 +27,6 @@ def error_response(request: Request, status: int, code: str, message: str, field
                 "code": code,
                 "message": message,
                 "fields": fields or {},
-                "request_id": getattr(request.state, "request_id", None),
                 **(extra or {}),
             }
         },

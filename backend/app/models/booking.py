@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -24,13 +24,8 @@ class Booking(Base):
         CheckConstraint(
             "total_minor = subtotal_minor + cleaning_fee_minor + service_fee_minor", name="ck_bookings_total"
         ),
-        CheckConstraint("currency = 'INR'", name="ck_bookings_currency"),
         # A retried request with the same key finds its booking instead of making a second one.
         UniqueConstraint("guest_id", "idempotency_key", name="uq_bookings_guest_idempotency"),
-        # Overlap checks and availability filters.
-        Index("ix_bookings_listing_status_dates", "listing_id", "status", "check_in", "check_out"),
-        # My Trips.
-        Index("ix_bookings_guest_check_in_id", "guest_id", "check_in", "id"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
@@ -48,7 +43,6 @@ class Booking(Base):
     cleaning_fee_minor: Mapped[int]
     service_fee_minor: Mapped[int]
     total_minor: Mapped[int]
-    currency: Mapped[str] = mapped_column(String(3), default="INR", server_default="INR")
     listing_title_snapshot: Mapped[str] = mapped_column(String(120))
     location_snapshot: Mapped[str] = mapped_column(String(160))
     cover_photo_snapshot: Mapped[str] = mapped_column(String(500))

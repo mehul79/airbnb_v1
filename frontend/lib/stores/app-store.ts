@@ -8,7 +8,6 @@ export type SessionUser = {
   id: string
   email: string
   display_name: string
-  avatar_url: string | null
   age: number | null
   created_at: number
 }

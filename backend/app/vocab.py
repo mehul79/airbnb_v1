@@ -33,6 +33,6 @@ class PhotoSource(StrEnum):
     URL = "url"
 
 
-def sql_in(enum: type[StrEnum]) -> str:
+def sql_in(enumm: type[StrEnum]) -> str:
     """'a', 'b', ... for use inside a CHECK (col IN (...)) constraint."""
-    return ", ".join(f"'{m.value}'" for m in enum)
+    return ", ".join(f"'{m.value}'" for m in enumm)

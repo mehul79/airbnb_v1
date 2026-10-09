@@ -35,7 +35,7 @@ export function AboutMe({ user }: { user: SessionUser }) {
         className="flex flex-col gap-8 rounded-3xl border border-hairline-soft bg-background p-8 shadow-[0_6px_20px_rgba(0,0,0,0.1)] sm:flex-row sm:items-center sm:gap-12"
       >
         <div className="flex min-w-0 flex-col items-center gap-2 text-center sm:w-56 sm:shrink-0">
-          <UserAvatar id={user.id} name={user.display_name} url={user.avatar_url} className="size-32 text-5xl" />
+          <UserAvatar id={user.id} name={user.display_name} className="size-32 text-5xl" />
           <p className="max-w-full truncate text-[32px] leading-10 font-bold text-ink">{user.display_name}</p>
           <p className="text-sm font-medium text-ink">{hosting.loading ? " " : hosts ? "Host" : "Guest"}</p>
         </div>
