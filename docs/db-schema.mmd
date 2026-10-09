@@ -1,0 +1,114 @@
+---
+title: Airbnb clone · database schema (SQLite, Alembic 0001-0005)
+config:
+  themeVariables:
+    fontFamily: arial
+    fontSize: 16px
+---
+erDiagram
+    users ||--o{ sessions : "has"
+    users ||--o{ listings : "hosts"
+    users ||--o{ bookings : "books as guest"
+    users ||--o{ reviews : "writes"
+    users ||--o{ favorites : "saves"
+    listings ||--|{ listing_photos : "has"
+    listings ||--o{ listing_amenities : "offers"
+    amenities ||--o{ listing_amenities : "tagged on"
+    listings ||--o{ reviews : "receives"
+    listings ||--o{ bookings : "booked via"
+    listings ||--o{ favorites : "saved in"
+
+    users {
+        text id PK
+        text email UK
+        text password_hash
+        text display_name
+        text avatar_url
+        int age
+        int created_at
+    }
+    sessions {
+        text id PK
+        text user_id FK
+        text token_hash UK
+        int expires_at
+        int created_at
+    }
+    listings {
+        text id PK
+        text host_id FK
+        text title
+        text description
+        text city
+        text region
+        text country
+        text location_label
+        real latitude
+        real longitude
+        text property_type
+        text category
+        int max_guests
+        int bedrooms
+        int beds
+        real bathrooms
+        int nightly_price_minor
+        int cleaning_fee_minor
+        text currency
+        int archived_at
+        int created_at
+        int updated_at
+    }
+    listing_photos {
+        text id PK
+        text listing_id FK
+        text source
+        text cloudinary_public_id
+        text url
+        text alt_text
+        int position UK
+    }
+    amenities {
+        text id PK
+        text slug UK
+        text name
+        text icon_key
+    }
+    listing_amenities {
+        text listing_id PK, FK
+        text amenity_id PK, FK
+    }
+    reviews {
+        text id PK
+        text listing_id FK
+        text author_id FK
+        int rating
+        text body
+        int created_at
+    }
+    bookings {
+        text id PK
+        text listing_id FK
+        text guest_id FK
+        text check_in
+        text check_out
+        int guests
+        int nights
+        text status
+        int nightly_price_minor
+        int subtotal_minor
+        int cleaning_fee_minor
+        int service_fee_minor
+        int total_minor
+        text currency
+        text listing_title_snapshot
+        text location_snapshot
+        text cover_photo_snapshot
+        text idempotency_key UK
+        text request_fingerprint
+        int created_at
+    }
+    favorites {
+        text user_id PK, FK
+        text listing_id PK, FK
+        int created_at
+    }
