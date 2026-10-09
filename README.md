@@ -5,7 +5,7 @@ A clone of Airbnb's stays marketplace: browse and search homes, view a listing, 
 - **Frontend:** Next.js 16 (App Router, TypeScript), Tailwind 4, shadcn/Radix, Zustand
 - **Backend:** FastAPI, SQLAlchemy 2, Alembic, pytest
 - **Database:** SQLite (a file locally; a file on a persistent disk in production)
-- **Live:** frontend https://airbnb-v1.vercel.app, API https://airbnb-v1.onrender.com/docs
+- **Live:** frontend https://airbnb.allmehul.me, API https://airbnb-v1.onrender.com/docs
 
 ## Features
 
