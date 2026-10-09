@@ -1,0 +1,106 @@
+---
+title: Airbnb clone - database (SQLite, Alembic 0001-0005)
+---
+classDiagram
+    direction TB
+
+    class User {
+        <<users>>
+        +str id PK
+        +str email UNIQUE
+        +str password_hash, display_name
+        +str? avatar_url
+        +int? age, int created_at
+    }
+
+    class UserSession {
+        <<sessions>>
+        +str id PK
+        +str user_id FK
+        +str token_hash UNIQUE
+        +int expires_at
+        +int created_at
+    }
+
+    class Listing {
+        <<listings>>
+        +str id PK, host_id FK
+        +str title, description
+        +str city, region, country
+        +str location_label
+        +float? latitude, longitude
+        +str property_type, category CHECK
+        +int max_guests, bedrooms, beds
+        +float bathrooms
+        +int nightly_price_minor, cleaning_fee_minor
+        +str currency = INR
+        +int? archived_at
+        +int created_at, updated_at
+    }
+
+    class ListingPhoto {
+        <<listing_photos>>
+        +str id PK, listing_id FK
+        +str source unsplash|cloudinary|url
+        +str? cloudinary_public_id
+        +str url, alt_text
+        +int position
+    }
+
+    class Amenity {
+        <<amenities>>
+        +str id PK
+        +str slug UNIQUE
+        +str name
+        +str icon_key
+    }
+
+    class ListingAmenity {
+        <<listing_amenities>>
+        +str listing_id PK,FK
+        +str amenity_id PK,FK
+    }
+
+    class Review {
+        <<reviews>>
+        +str id PK
+        +str listing_id FK
+        +str author_id FK
+        +int rating 1-5
+        +str body
+        +int created_at
+    }
+
+    class Booking {
+        <<bookings>>
+        +str id PK, listing_id FK, guest_id FK
+        +date check_in, check_out
+        +int guests, nights
+        +str status = confirmed
+        +int nightly_price_minor, subtotal_minor
+        +int cleaning_fee_minor, service_fee_minor
+        +int total_minor, str currency = INR
+        +str listing_title_snapshot, location_snapshot
+        +str cover_photo_snapshot
+        +str idempotency_key, request_fingerprint
+        +int created_at
+    }
+
+    class Favorite {
+        <<favorites>>
+        +str user_id PK,FK
+        +str listing_id PK,FK
+        +int created_at
+    }
+
+    User "1" --> "0..*" UserSession : has (cascade delete)
+    User "1" --> "0..*" Listing : hosts
+    User "1" --> "0..*" Booking : books as guest
+    User "1" --> "0..*" Review : writes
+    User "1" --> "0..*" Favorite : saves
+    Listing "1" *-- "1..*" ListingPhoto : photos (cascade)
+    Listing "1" --> "0..*" ListingAmenity
+    Amenity "1" --> "0..*" ListingAmenity
+    Listing "1" --> "0..*" Review : one per guest
+    Listing "1" --> "0..*" Booking : unique (guest, idempotency_key)
+    Listing "1" --> "0..*" Favorite
