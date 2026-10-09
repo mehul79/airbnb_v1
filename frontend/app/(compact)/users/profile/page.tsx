@@ -15,7 +15,7 @@ async function Profile({ searchParams }: Pick<PageProps<"/users/profile">, "sear
 
 export default function ProfilePage({ searchParams }: PageProps<"/users/profile">) {
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-[1120px] flex-1 flex-col px-6 pt-10 pb-24 md:px-10">
+    <main className="mx-auto flex min-h-dvh w-full max-w-[1280px] flex-1 flex-col px-6 pt-10 pb-24 md:px-10">
       <Suspense fallback={<Skeleton className="h-96 w-full rounded-3xl" aria-busy aria-label="Loading profile" />}>
         <Profile searchParams={searchParams} />
       </Suspense>
