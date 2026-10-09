@@ -57,6 +57,9 @@ class ListingSummary(BaseModel):
     # None when nobody has reviewed it yet; the UI shows "New" instead of a rating.
     rating: float | None
     review_count: int
+    # Both decided by app/services/ratings.py, never by the client.
+    guest_favourite: bool
+    host_superhost: bool
 
 
 class ListingPage(BaseModel):
@@ -76,6 +79,10 @@ class HostOut(BaseModel):
     display_name: str
     avatar_url: str | None
     member_since: int  # UTC Unix seconds
+    # Over every review of this host's listings (not just the one being viewed).
+    rating: float | None
+    review_count: int
+    superhost: bool
 
 
 class ListingDetail(BaseModel):
@@ -102,6 +109,9 @@ class ListingDetail(BaseModel):
     host: HostOut
     rating: float | None
     review_count: int
+    guest_favourite: bool
+    # {"5": n, ..., "1": n}: how many reviews gave each star rating.
+    rating_breakdown: dict[str, int]
 
 
 class ReviewAuthor(BaseModel):

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.models import Favorite, Listing, ListingPhoto, Review
 from app.schemas.listings import ListingPage
 from app.services import listings as listing_service
+from app.services import ratings as reputation
 
 
 def ids(db: Session, user_id: str) -> list[str]:
@@ -69,8 +70,12 @@ def page(db: Session, user_id: str, number: int, page_size: int) -> ListingPage:
             )
         )
     }
+    hosts = reputation.host_stats(db, [listing.host_id for listing, _, _ in rows])
     return ListingPage(
-        items=[listing_service.summary(listing, avg, n, covers.get(listing.id)) for listing, avg, n in rows],
+        items=[
+            listing_service.summary(listing, avg, n, covers.get(listing.id), hosts[listing.host_id].superhost)
+            for listing, avg, n in rows
+        ],
         page=number,
         page_size=page_size,
         total=total,
