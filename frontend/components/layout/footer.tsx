@@ -94,7 +94,7 @@ export function Footer() {
       <Tabs defaultValue="Popular" className="mt-6 gap-0">
         <TabsList
           variant="line"
-          className="h-auto w-full justify-start gap-8 overflow-x-auto rounded-none border-b border-hairline-soft p-0"
+          className="h-auto w-full justify-start gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden overflow-x-auto overflow-y-hidden rounded-none border-b border-hairline-soft p-0"
         >
           {Object.keys(INSPIRATION).map((tab) => (
             <TabsTrigger
