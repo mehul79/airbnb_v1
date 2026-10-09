@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { differenceInCalendarDays, format, isSameYear, parseISO } from "date-fns"
 
+import { ReviewButton } from "@/components/trips/review-button"
 import { Badge } from "@/components/ui/badge"
 import { formatPaise } from "@/lib/format"
 import { listingPhotoSrc } from "@/lib/images"
@@ -72,6 +73,7 @@ export function TripCard({ booking }: { booking: Booking }) {
           <p className="text-base text-ink">
             <span className="font-semibold">{formatPaise(booking.total_minor)}</span> <span className="text-sm text-muted-foreground">total</span>
           </p>
+          {past && <ReviewButton listingId={booking.listing_id} title={booking.listing_title} reviewed={booking.reviewed} />}
           <p className="text-right text-xs text-muted-foreground">
             Confirmation
             <span className="block font-mono text-sm tracking-wider text-ink">{booking.reference}</span>

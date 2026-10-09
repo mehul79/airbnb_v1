@@ -11,6 +11,11 @@ const cache = new Map<string, Promise<unknown>>()
 
 type State<T> = { path: string; attempt: number; status: "ok"; data: T } | { path: string; attempt: number; status: "error" }
 
+// Drop every cached path that starts with `prefix`, e.g. a listing's reviews after the user posts one.
+export function forgetCached(prefix: string) {
+  for (const path of cache.keys()) if (path.startsWith(prefix)) cache.delete(path)
+}
+
 // `fresh`: never cached, refetched every time the component mounts. Used for private data
 // (trips), which must not be shared between accounts or shown stale after a new booking.
 export function useQuery<T>(path: string | null, { fresh = false }: { fresh?: boolean } = {}) {

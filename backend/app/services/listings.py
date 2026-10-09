@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from math import ceil
 
 from sqlalchemy import exists, func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app import clock
@@ -15,6 +16,7 @@ from app.schemas.listings import (
     ListingSummary,
     QuoteOut,
     MapPage,
+    ReviewOut,
     ReviewPage,
     SearchParams,
 )
@@ -243,6 +245,31 @@ def reviews(db: Session, listing_id: str, page: int, page_size: int) -> ReviewPa
         page_size=page_size,
         total=total,
         total_pages=_pages(total, page_size),
+    )
+
+
+def add_review(db: Session, listing_id: str, user_id: str, rating: int, body: str) -> ReviewOut:
+    """A guest can review a home once, and only after a stay there has ended."""
+    get_active(db, listing_id)
+    stayed = db.scalar(
+        select(exists().where(Booking.listing_id == listing_id, Booking.guest_id == user_id, Booking.check_out <= clock.today()))
+    )
+    if not stayed:
+        raise AppError(403, "NOT_ELIGIBLE", "You can review a home after your stay there has ended.")
+    review = Review(listing_id=listing_id, author_id=user_id, rating=rating, body=body)
+    db.add(review)
+    try:
+        db.commit()
+    except IntegrityError:  # uq_reviews_listing_author: the second click of a double submit, or a repeat review
+        db.rollback()
+        raise AppError(409, "ALREADY_REVIEWED", "You've already reviewed this home.") from None
+    author = db.get(User, user_id)
+    return ReviewOut(
+        id=review.id,
+        rating=review.rating,
+        body=review.body,
+        created_at=review.created_at,
+        author={"display_name": author.display_name, "avatar_url": author.avatar_url},
     )
 
 
