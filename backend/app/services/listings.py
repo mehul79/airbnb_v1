@@ -14,6 +14,7 @@ from app.schemas.listings import (
     ListingPage,
     ListingSummary,
     QuoteOut,
+    MapPage,
     ReviewPage,
     SearchParams,
 )
@@ -49,6 +50,8 @@ def summary(
         city=listing.city,
         region=listing.region,
         location_label=listing.location_label,
+        latitude=listing.latitude,
+        longitude=listing.longitude,
         property_type=listing.property_type,
         category=listing.category,
         max_guests=listing.max_guests,
@@ -64,7 +67,8 @@ def summary(
     )
 
 
-def search(db: Session, p: SearchParams) -> ListingPage:
+def _conditions(db: Session, p: SearchParams) -> list:
+    """The WHERE conditions shared by the results list and the results map."""
     conditions = [Listing.archived_at.is_(None), Listing.max_guests >= p.guests]
 
     term = (p.location or "").strip()
@@ -116,25 +120,29 @@ def search(db: Session, p: SearchParams) -> ListingPage:
             .having(func.count() == len(wanted))
         )
         conditions.append(Listing.id.in_(has_all))
+    return conditions
 
-    total = db.scalar(select(func.count()).select_from(Listing).where(*conditions))
 
+def _rows(db: Session, conditions: list, limit: int, offset: int = 0):
+    """(listing, average rating, review count) for the matches, newest first."""
     ratings = (
         select(Review.listing_id, func.avg(Review.rating).label("avg"), func.count().label("n"))
         .group_by(Review.listing_id)
         .subquery()
     )
-    rows = db.execute(
+    return db.execute(
         select(Listing, ratings.c.avg, ratings.c.n)
         .outerjoin(ratings, ratings.c.listing_id == Listing.id)
         .where(*conditions)
         # id breaks ties so pages never repeat or skip a card.
         .order_by(Listing.created_at.desc(), Listing.id.desc())
-        .limit(p.page_size)
-        .offset((p.page - 1) * p.page_size)
+        .limit(limit)
+        .offset(offset)
     ).all()
 
-    # One extra query for all cover photos on the page, instead of one per card.
+
+def _cards(db: Session, rows) -> list[ListingSummary]:
+    # One extra query for all cover photos, and one for the hosts' badges, instead of one per card.
     covers = {
         photo.listing_id: photo
         for photo in db.scalars(
@@ -143,12 +151,28 @@ def search(db: Session, p: SearchParams) -> ListingPage:
             )
         )
     }
-
     hosts = reputation.host_stats(db, [listing.host_id for listing, _, _ in rows])
-    items = [summary(listing, avg, n, covers.get(listing.id), hosts[listing.host_id].superhost) for listing, avg, n in rows]
+    return [summary(listing, avg, n, covers.get(listing.id), hosts[listing.host_id].superhost) for listing, avg, n in rows]
+
+
+def search(db: Session, p: SearchParams) -> ListingPage:
+    conditions = _conditions(db, p)
+    total = db.scalar(select(func.count()).select_from(Listing).where(*conditions))
+    rows = _rows(db, conditions, p.page_size, (p.page - 1) * p.page_size)
     return ListingPage(
-        items=items, page=p.page, page_size=p.page_size, total=total, total_pages=_pages(total, p.page_size)
+        items=_cards(db, rows), page=p.page, page_size=p.page_size, total=total, total_pages=_pages(total, p.page_size)
     )
+
+
+MAP_LIMIT = 200
+
+
+def map_pins(db: Session, p: SearchParams) -> MapPage:
+    """Every match (not one page) that can be placed on a map, up to MAP_LIMIT. Same filters as search."""
+    conditions = _conditions(db, p) + [Listing.latitude.is_not(None), Listing.longitude.is_not(None)]
+    total = db.scalar(select(func.count()).select_from(Listing).where(*conditions))
+    rows = _rows(db, conditions, MAP_LIMIT)
+    return MapPage(items=_cards(db, rows), total=total, truncated=total > MAP_LIMIT)
 
 
 def detail(db: Session, listing_id: str) -> ListingDetail:

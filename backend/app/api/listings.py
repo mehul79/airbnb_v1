@@ -11,6 +11,7 @@ from app.schemas.listings import (
     AvailabilityOut,
     ListingDetail,
     ListingPage,
+    MapPage,
     QuoteIn,
     QuoteOut,
     ReviewPage,
@@ -29,6 +30,12 @@ def list_amenities(db: DbDep):
 @router.get("/listings", response_model=ListingPage)
 def search_listings(params: Annotated[SearchParams, Query()], db: DbDep):
     return listing_service.search(db, params)
+
+
+# Declared before /listings/{listing_id}, or "map" would be read as a listing id.
+@router.get("/listings/map", response_model=MapPage)
+def map_listings(params: Annotated[SearchParams, Query()], db: DbDep):
+    return listing_service.map_pins(db, params)
 
 
 @router.get("/listings/{listing_id}", response_model=ListingDetail)

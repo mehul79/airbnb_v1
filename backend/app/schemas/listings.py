@@ -46,6 +46,9 @@ class ListingSummary(BaseModel):
     city: str
     region: str
     location_label: str
+    # Where the map puts the price bubble; None when the host gave no coordinates.
+    latitude: float | None
+    longitude: float | None
     property_type: str
     category: str
     max_guests: int
@@ -72,6 +75,15 @@ class ListingPage(BaseModel):
 
 class FavoriteIds(BaseModel):
     ids: list[str]
+
+
+class MapPage(BaseModel):
+    """Every listing matching a search that has coordinates, for the results map."""
+
+    items: list[ListingSummary]
+    # How many matches there are in total, and whether `items` was cut at the cap.
+    total: int
+    truncated: bool
 
 
 class HostOut(BaseModel):
