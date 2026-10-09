@@ -84,7 +84,7 @@ function TripsList({ phase }: { phase: Phase }) {
       <p className="text-sm text-muted-foreground" aria-live="polite">
         {first.data.total} {phase} {first.data.total === 1 ? "trip" : "trips"}
       </p>
-      <ul className="grid gap-x-6 gap-y-10 md:grid-cols-2 lg:grid-cols-3">
+      <ul className="flex max-w-[900px] flex-col gap-4">
         {Array.from({ length: pages }, (_, i) => (
           <TripsPage key={i} phase={phase} page={i + 1} />
         ))}
@@ -103,7 +103,7 @@ function TripsPage({ phase, page }: { phase: Phase; page: number }) {
 
   if (error)
     return (
-      <li className="md:col-span-2 lg:col-span-3">
+      <li>
         <SectionError label="more trips" onRetry={retry} />
       </li>
     )
@@ -142,19 +142,22 @@ function NoTrips({ phase }: { phase: Phase }) {
 
 function TripCardSkeleton() {
   return (
-    <div className="flex flex-col gap-3" aria-busy>
-      <Skeleton className="aspect-[3/2] w-full rounded-xl" />
-      <Skeleton className="h-5 w-3/4" />
-      <Skeleton className="h-4 w-1/2" />
-      <Skeleton className="h-4 w-2/3" />
+    <div className="flex flex-col overflow-hidden rounded-xl border border-hairline sm:flex-row" aria-busy>
+      <Skeleton className="h-[180px] w-full shrink-0 rounded-none sm:h-[200px] sm:w-[240px]" />
+      <div className="flex flex-1 flex-col gap-3 p-5">
+        <Skeleton className="h-6 w-3/4" />
+        <Skeleton className="h-4 w-1/3" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="mt-auto h-8 w-full" />
+      </div>
     </div>
   )
 }
 
 function TripsSkeleton() {
   return (
-    <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 lg:grid-cols-3" aria-busy aria-label="Loading trips">
-      {Array.from({ length: 3 }, (_, i) => (
+    <div className="flex max-w-[900px] flex-col gap-4" aria-busy aria-label="Loading trips">
+      {Array.from({ length: 2 }, (_, i) => (
         <TripCardSkeleton key={i} />
       ))}
     </div>

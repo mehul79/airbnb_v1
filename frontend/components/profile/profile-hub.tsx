@@ -28,8 +28,8 @@ export function ProfileHub({ tab, view }: { tab: ProfileTab; view: HostingView }
   return (
     <RequireUser title="Log in to see your profile" description="Your trips, wishlists and listings are all here once you're signed in.">
       {(user) => (
-        <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-x-20">
-          <aside className="flex flex-col gap-6 lg:sticky lg:top-28 lg:self-start">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-x-20">
+          <aside className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-28 lg:self-start">
             <h1 className="text-[32px] leading-10 font-semibold text-ink">Profile</h1>
 
             <nav aria-label="Profile sections" className="-mx-6 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none] lg:mx-0 lg:flex-col lg:gap-1 lg:overflow-visible lg:px-0 [&::-webkit-scrollbar]:hidden">
