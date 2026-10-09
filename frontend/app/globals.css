@@ -1,0 +1,227 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/*
+ * Design tokens only (frontend/DESIGN.md). All component styling lives in Tailwind classes.
+ * Light is the default; a .dark class on <html> (set by next-themes) swaps the variables below.
+ * Airbnb itself has no dark mode, so the dark palette is ours, kept to the same roles.
+ */
+
+/* shadcn's dark: classes apply under a .dark ancestor. */
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  /* shadcn semantic colors -> Airbnb palette (values in :root below) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Airbnb named colors: bg-rausch, text-ink, border-hairline, ... */
+  --color-rausch: #ff385c;
+  --color-rausch-active: #e00b41;
+  --color-rausch-disabled: #ffd1da;
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-muted-soft: var(--muted-soft);
+  --color-hairline: var(--hairline);
+  --color-hairline-soft: var(--hairline-soft);
+  --color-border-strong: var(--border-strong);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-strong: var(--surface-strong);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-pressed: var(--surface-pressed);
+  --color-field: var(--field);
+  --color-error: var(--error);
+  --color-error-hover: var(--error-hover);
+  --color-legal-link: #428bff;
+  --color-laurel: #434343;
+  --color-luxe: #460479;
+  --color-plus: #92174d;
+
+  /* Inter substitutes Airbnb Cereal VF (variable set by next/font in app/layout.tsx) */
+  --font-sans: var(--font-inter), -apple-system, system-ui, Roboto, "Helvetica Neue", sans-serif;
+  --font-heading: var(--font-sans);
+
+  /* Type scale: text-display-xl, text-body-sm, ... */
+  --text-rating-display: 64px;
+  --text-rating-display--line-height: 1.1;
+  --text-rating-display--letter-spacing: -1px;
+  --text-rating-display--font-weight: 700;
+  --text-display-xl: 28px;
+  --text-display-xl--line-height: 1.43;
+  --text-display-xl--font-weight: 700;
+  --text-display-lg: 22px;
+  --text-display-lg--line-height: 1.18;
+  --text-display-lg--letter-spacing: -0.44px;
+  --text-display-lg--font-weight: 500;
+  --text-display-md: 21px;
+  --text-display-md--line-height: 1.43;
+  --text-display-md--font-weight: 700;
+  --text-display-sm: 20px;
+  --text-display-sm--line-height: 1.2;
+  --text-display-sm--letter-spacing: -0.18px;
+  --text-display-sm--font-weight: 600;
+  --text-title-md: 16px;
+  --text-title-md--line-height: 1.25;
+  --text-title-md--font-weight: 600;
+  --text-title-sm: 16px;
+  --text-title-sm--line-height: 1.25;
+  --text-title-sm--font-weight: 500;
+  --text-body-md: 16px;
+  --text-body-md--line-height: 1.5;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 1.43;
+  --text-caption: 14px;
+  --text-caption--line-height: 1.29;
+  --text-caption--font-weight: 500;
+  --text-caption-sm: 13px;
+  --text-caption-sm--line-height: 1.23;
+  --text-micro-label: 12px;
+  --text-micro-label--line-height: 1.33;
+  --text-micro-label--font-weight: 700;
+  --text-badge: 11px;
+  --text-badge--line-height: 1.18;
+  --text-badge--font-weight: 600;
+  --text-uppercase-tag: 8px;
+  --text-uppercase-tag--line-height: 1.25;
+  --text-uppercase-tag--letter-spacing: 0.32px;
+  --text-uppercase-tag--font-weight: 700;
+
+  /*
+   * Radii. shadcn primitives use rounded-lg for controls and rounded-xl for surfaces,
+   * so those map to DESIGN.md rounded.sm (8px) and rounded.md (14px).
+   */
+  --radius-xs: 4px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 8px; /* buttons, inputs */
+  --radius-xl: 14px; /* cards, photos, dialogs */
+  --radius-2xl: 20px;
+  --radius-3xl: 32px;
+  --radius-auth: 12px; /* auth Continue button */
+
+  /* The single elevation tier: shadow-float */
+  --shadow-float: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.04) 0 2px 6px 0, rgba(0, 0, 0, 0.1) 0 4px 8px 0;
+
+  /* Breakpoints: md = tablet (744px), lg = desktop (1128px), xl = wide (1440px) */
+  --breakpoint-md: 744px;
+  --breakpoint-lg: 1128px;
+  --breakpoint-xl: 1440px;
+
+  /* Content widths: max-w-home, max-w-search, max-w-detail */
+  --container-home: 1280px;
+  --container-search: 1440px;
+  --container-detail: 1080px;
+}
+
+:root {
+  --ink: #222222;
+  --body: #3f3f3f;
+  --muted-soft: #929292;
+  --hairline: #dddddd;
+  --hairline-soft: #ebebeb;
+  --border-strong: #c1c1c1;
+  --surface-soft: #f7f7f7;
+  --surface-strong: #f2f2f2;
+  --surface-hover: #ebebeb; /* a hovered section, the grey search bar */
+  --surface-pressed: #dddddd;
+  --field: #b0b0b0; /* resting border of a text field */
+  --error: #c13515;
+  --error-hover: #b32505;
+  --background: #ffffff;
+  --foreground: #222222;
+  --card: #ffffff;
+  --card-foreground: #222222;
+  --popover: #ffffff;
+  --popover-foreground: #222222;
+  --primary: #ff385c;
+  --primary-foreground: #ffffff;
+  --secondary: #ffffff;
+  --secondary-foreground: #222222;
+  --muted: #f7f7f7;
+  --muted-foreground: #6a6a6a;
+  --accent: #f7f7f7;
+  --accent-foreground: #222222;
+  --destructive: #c13515;
+  --border: #dddddd;
+  --input: #dddddd;
+  --ring: #222222;
+  --radius: 8px;
+
+  /* Gradients (DESIGN.md "Gradients & Illustration"); use as bg-(image:--gradient-auth-continue) */
+  --gradient-auth-continue: linear-gradient(to right, #e61e4d 0%, #e31c5f 50%, #d70466 100%);
+  --gradient-photo-placeholder: linear-gradient(135deg, #d8d8d8 0%, #bcbcbc 100%);
+  --gradient-avatar-rausch: linear-gradient(135deg, #f3384d 0%, #cc3522 100%);
+  --gradient-avatar-berry: linear-gradient(135deg, #d82d62 0%, #680e72 100%);
+  --gradient-avatar-plum: linear-gradient(135deg, #560770 0%, #861557 100%);
+  --gradient-tile-rausch: linear-gradient(135deg, #ff82a4 0%, #ff577a 100%);
+  --gradient-tile-blue: linear-gradient(135deg, #7091c4 0%, #36578a 100%);
+  --gradient-tile-green: linear-gradient(135deg, #afd3a3 0%, #598b68 100%);
+  --gradient-tile-magenta: linear-gradient(135deg, #f69cc0 0%, #ac3668 100%);
+}
+
+.dark {
+  --ink: #f5f5f5;
+  --body: #d4d4d4;
+  --muted-soft: #8a8a8a;
+  --hairline: #3a3a3a;
+  --hairline-soft: #303030;
+  --border-strong: #4a4a4a;
+  --surface-soft: #242424;
+  --surface-strong: #2b2b2b;
+  --surface-hover: #303030;
+  --surface-pressed: #3a3a3a;
+  --field: #6a6a6a;
+  --error: #ff7a59;
+  --error-hover: #ff9478;
+  --background: #181818;
+  --foreground: #f5f5f5;
+  --card: #1f1f1f;
+  --card-foreground: #f5f5f5;
+  --popover: #1f1f1f;
+  --popover-foreground: #f5f5f5;
+  --primary: #ff385c;
+  --primary-foreground: #ffffff;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #f5f5f5;
+  --muted: #242424;
+  --muted-foreground: #a8a8a8;
+  --accent: #2b2b2b;
+  --accent-foreground: #f5f5f5;
+  --destructive: #ff7a59;
+  --border: #3a3a3a;
+  --input: #3a3a3a;
+  --ring: #f5f5f5;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground text-body-md antialiased;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
