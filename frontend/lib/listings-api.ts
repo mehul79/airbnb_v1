@@ -106,6 +106,7 @@ export type Booking = {
   location: string
   cover_photo_url: string
   created_at: number
+  reviewed: boolean // only set on My Trips
 }
 export type BookingPage = { items: Booking[]; page: number; page_size: number; total: number; total_pages: number }
 export type Occupied = { check_in: string; check_out: string }

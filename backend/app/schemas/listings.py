@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.vocab import Category, PropertyType
 
@@ -137,6 +137,19 @@ class ReviewOut(BaseModel):
     body: str
     created_at: int
     author: ReviewAuthor
+
+
+class ReviewIn(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    body: str = Field(min_length=10, max_length=2000)
+
+    @field_validator("body")
+    @classmethod
+    def trim(cls, v: str) -> str:
+        v = v.strip()
+        if len(v) < 10:
+            raise ValueError("Tell future guests a little more (at least 10 characters).")
+        return v
 
 
 class ReviewPage(BaseModel):

@@ -8,14 +8,14 @@ from sqlalchemy.orm import Session
 
 from app import clock
 from app.errors import AppError
-from app.models import Booking, Listing, ListingPhoto
+from app.models import Booking, Listing, ListingPhoto, Review
 from app.models.user import new_id, now
 from app.schemas.bookings import BookingIn, BookingOut, BookingPage
 from app.services import listings as listing_service
 from app.services import stays
 
 
-def to_out(b: Booking) -> BookingOut:
+def to_out(b: Booking, reviewed: bool = False) -> BookingOut:
     return BookingOut(
         id=b.id,
         reference=b.id[:8].upper(),
@@ -36,6 +36,7 @@ def to_out(b: Booking) -> BookingOut:
         location=b.location_snapshot,
         cover_photo_url=b.cover_photo_snapshot,
         created_at=b.created_at,
+        reviewed=reviewed,
     )
 
 
@@ -168,8 +169,11 @@ def trips(db: Session, guest_id: str, phase: str, page: int, page_size: int) -> 
     rows = db.scalars(
         select(Booking).where(*conditions).order_by(*order).limit(page_size).offset((page - 1) * page_size)
     ).all()
+    reviewed = set(
+        db.scalars(select(Review.listing_id).where(Review.author_id == guest_id, Review.listing_id.in_([b.listing_id for b in rows])))
+    )
     return BookingPage(
-        items=[to_out(b) for b in rows],
+        items=[to_out(b, b.listing_id in reviewed) for b in rows],
         page=page,
         page_size=page_size,
         total=total,

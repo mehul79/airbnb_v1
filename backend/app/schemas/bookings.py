@@ -37,6 +37,8 @@ class BookingOut(BaseModel):
     location: str
     cover_photo_url: str
     created_at: int
+    # True once this guest has reviewed the listing. Only filled in on My Trips.
+    reviewed: bool = False
 
 
 class BookingPage(BaseModel):

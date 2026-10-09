@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Query
 from sqlalchemy import select
 
-from app.api.deps import DbDep
+from app.api.deps import CurrentUser, DbDep
 from app.models import Amenity
 from app.schemas.listings import (
     AmenityOut,
@@ -14,6 +14,8 @@ from app.schemas.listings import (
     MapPage,
     QuoteIn,
     QuoteOut,
+    ReviewIn,
+    ReviewOut,
     ReviewPage,
     SearchParams,
 )
@@ -51,6 +53,11 @@ def get_reviews(
     page_size: Annotated[int, Query(ge=1, le=50)] = 10,
 ):
     return listing_service.reviews(db, listing_id, page, page_size)
+
+
+@router.post("/listings/{listing_id}/reviews", response_model=ReviewOut, status_code=201)
+def post_review(listing_id: str, body: ReviewIn, db: DbDep, user: CurrentUser):
+    return listing_service.add_review(db, listing_id, user.id, body.rating, body.body)
 
 
 @router.get("/listings/{listing_id}/availability", response_model=AvailabilityOut)
