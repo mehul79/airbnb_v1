@@ -38,3 +38,7 @@ Thumbs.db
 
 # Local planning notes, not published
 .claude/
+
+practise_anything
+# Backend tests stay local
+backend/tests/
