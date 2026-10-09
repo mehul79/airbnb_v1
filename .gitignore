@@ -1,0 +1,37 @@
+# Private configuration, preserving distributable templates
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies and generated output
+node_modules/
+.next/
+out/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+coverage/
+.vercel/
+*.tsbuildinfo
+
+# Local databases and runtime output
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.log
+.DS_Store
+Thumbs.db
+
+# Separate delivery checkout
+.submission/
