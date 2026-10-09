@@ -1,6 +1,7 @@
 from collections.abc import Iterator
+from pathlib import Path
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, make_url
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
@@ -13,6 +14,10 @@ class Base(DeclarativeBase):
 
 def make_engine(url: str, busy_timeout: float = 5.0) -> Engine:
     """SQLite file engine. busy_timeout is how long a writer waits for the write lock."""
+    path = make_url(url).database
+    if path and path != ":memory:":
+        # SQLite creates the file but not its folder; without this a missing folder is "unable to open database file".
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
     engine = create_engine(url, connect_args={"timeout": busy_timeout})
 
     @event.listens_for(engine, "connect")
